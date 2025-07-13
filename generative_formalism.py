@@ -16,8 +16,8 @@ from functools import lru_cache
 cache = lru_cache(maxsize=1000)
 
 load_dotenv()
-PATH_CHADWYCK_HEALEY_TXT = os.path.expanduser(os.getenv('PATH_CHADWYCK_HEALEY_TXT'))
-PATH_CHADWYCK_HEALEY_METADATA = os.path.expanduser(os.getenv('PATH_CHADWYCK_HEALEY_METADATA'))
+PATH_CHADWYCK_HEALEY_TXT = os.path.expanduser(os.getenv('PATH_CHADWYCK_HEALEY_TXT',''))
+PATH_CHADWYCK_HEALEY_METADATA = os.path.expanduser(os.getenv('PATH_CHADWYCK_HEALEY_METADATA',''))
 
 
 pd.set_option('display.max_rows', 25)
