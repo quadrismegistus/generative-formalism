@@ -14,6 +14,8 @@ from warnings import filterwarnings
 filterwarnings('ignore')
 from functools import lru_cache
 cache = lru_cache(maxsize=1000)
+HIST = '(Historical)'
+
 
 load_dotenv()
 PATH_CHADWYCK_HEALEY_TXT = os.path.expanduser(os.getenv('PATH_CHADWYCK_HEALEY_TXT',''))
@@ -192,11 +194,21 @@ def get_id_hash_str(id):
     from hashlib import sha256
     return sha256(id.encode()).hexdigest()[:8]
 
-
+def limit_lines(txt, n=100):
+    l=[]
+    n0=0
+    for line in txt.strip().split('\n'):
+        if line.strip():
+            n0+=1
+        l.append(line)
+        if n0>=n:
+            break
+    return '\n'.join(l).strip()
 
 @stashed_result(engine='pairtree')
 def get_rhyme_for_txt(txt, max_dist=1):
     try:
+        txt = limit_lines(txt)
         text = prosodic.Text(txt)
         rhyme_d = text.get_rhyming_lines(max_dist)
         all_rhyming_lines = set()
@@ -225,14 +237,17 @@ def get_rhyme_for_sample(path_sample, force=False):
         df_rhymes = pd.read_csv(ofn).fillna("").set_index('id')
     else:    
         df_rhymes = pd.DataFrame((get_rhyme_for_txt(txt) for txt in tqdm(df.txt)), index=df.index).dropna().applymap(int)
+        if 'line_sim' in df.columns:
+            line_sims = dict(zip(df.index, df.line_sim))
+            df_rhymes['line_sim'] = df_rhymes.index.map(line_sims)
         df_rhymes.to_csv(ofn)
     return postprocess_rhyme_sample(df, df_rhymes)
 
 
 def postprocess_rhyme_sample(df_poems, df_rhymes, rhyme_threshold=4):
     df = df_poems.join(df_rhymes, rsuffix='_prosodic', how='inner')
-
-    df['num_lines_prosodic'] = pd.to_numeric(df.num_lines_prosodic, errors='coerce')
+    num_lines = df.num_lines_prosodic if 'num_lines_prosodic' in df.columns else df.num_lines
+    df['num_lines_prosodic'] = pd.to_numeric(num_lines, errors='coerce')
     df['num_rhyming_lines'] = pd.to_numeric(df.num_rhyming_lines, errors='coerce')
     df['num_perfectly_rhyming_lines'] = pd.to_numeric(df.num_perfectly_rhyming_lines, errors='coerce')
     df['perc_rhyming_lines'] = df.num_rhyming_lines / df.num_lines_prosodic * 100
@@ -311,10 +326,58 @@ def compute_stat_signif(df, varname='model', valname='rhyme_pred_perc'):
     results_df = pd.DataFrame(results)
     return results_df.sort_values('effect_size', ascending=False)
 
-def compute_all_stat_signif(df, groupby='period'):
+def compute_all_stat_signif(df, groupby='period', varname='model', valname='rhyme_pred_perc'):
     o=[]
     for g,gdf in df.groupby(groupby):
-        ogdf = compute_stat_signif(gdf).assign(groupby=g)
+        ogdf = compute_stat_signif(gdf, varname, valname).assign(groupby=g)
         o.append(ogdf)
     return pd.concat(o).sort_values(['groupby', 'effect_size'],ascending=False).set_index(['groupby','comparison',])
         
+
+
+def get_avgs_df(df, gby=['period','source','prompt_type'], y='rhyme_pred_perc'):
+    stats_df = df.groupby(gby)[y].agg(
+        mean=np.mean,
+        stderr=lambda x: x.std() / np.sqrt(len(x)),
+        count=len
+    ).reset_index()
+    return stats_df
+
+
+def get_rhyme_for_completed_poems(period_by=50, filter_line_sim=True, rename_models=True):
+    df=get_rhyme_for_sample('../data/corpus_genai_completions.csv.gz', force=True).reset_index()
+    if 'line_sim' in df.columns:
+        df['line_sim'] = pd.to_numeric(df.line_sim, errors='coerce')
+        if filter_line_sim:
+            df = df[df.line_sim<95]
+
+    df = df.groupby(['id_human','id','model']).mean(numeric_only=True).reset_index()
+    df_meta = get_chadwyck_corpus(period_by=period_by)
+    df = df.merge(df_meta, left_on='id_human', right_on='id', suffixes=['','_meta'], how='left')
+
+    def rename_model(x):
+        if x=='':
+            return HIST
+        if 'text' in x:
+            return ''
+        if 'gpt-3' in x:
+            return 'ChatGPT'
+        if 'gpt-4' in x:
+            return 'ChatGPT'
+        elif 'claude-3' in x:
+            return 'Claude'
+        elif 'llama3' in x:
+            return 'Llama'
+        elif 'olmo2' in x:
+            return 'Olmo'
+        elif 'deepseek' in x:
+            return 'DeepSeek'
+        elif 'gemini' in x:
+            return 'Gemini'
+        else:
+            return ''
+    
+    if rename_models:
+        df['model']=df.model.apply(rename_model)
+        df = df[df.model!='']
+    return df
