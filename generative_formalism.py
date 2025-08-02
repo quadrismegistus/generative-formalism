@@ -349,14 +349,14 @@ def get_rhyme_for_completed_poems(period_by=50, filter_line_sim=True, rename_mod
     if 'line_sim' in df.columns:
         df['line_sim'] = pd.to_numeric(df.line_sim, errors='coerce')
         if filter_line_sim:
-            df = df[df.line_sim<95]
+            df = df[(df.model==HIST) | (df.model=='') | (df.line_sim<95)]
 
     df = df.groupby(['id_human','id','model']).mean(numeric_only=True).reset_index()
     df_meta = get_chadwyck_corpus(period_by=period_by)
     df = df.merge(df_meta, left_on='id_human', right_on='id', suffixes=['','_meta'], how='left')
 
     def rename_model(x):
-        if x=='':
+        if x=='' or x==HIST:
             return HIST
         if 'text' in x:
             return ''
@@ -380,4 +380,4 @@ def get_rhyme_for_completed_poems(period_by=50, filter_line_sim=True, rename_mod
     if rename_models:
         df['model']=df.model.apply(rename_model)
         df = df[df.model!='']
-    return df
+    return df 
