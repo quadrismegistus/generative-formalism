@@ -8,12 +8,16 @@ from . import *
 ### RHYME
 
 
-@stashed_result(engine='pairtree')
-def get_rhyme_for_txt(txt, max_dist=1):
+def get_rhyme_for_txt(txt, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=False):
+    stash_key = (txt, max_dist)
+    if not force and stash is not None and stash_key in stash:
+        return stash[stash_key]
+
+    out = {}    
     try:
         txt = limit_lines(txt)
         text = prosodic.Text(txt)
-        rhyme_d = text.get_rhyming_lines(max_dist)
+        rhyme_d = text.get_rhyming_lines(max_dist=max_dist)
         all_rhyming_lines = set()
         all_perfectly_rhyming_lines = set()
         for l1, (score, l2) in rhyme_d.items():
@@ -23,35 +27,68 @@ def get_rhyme_for_txt(txt, max_dist=1):
         num_rhyming_lines = len(all_rhyming_lines)
         num_perfectly_rhyming_lines = len(all_perfectly_rhyming_lines)
         num_lines = text.num_lines
-        return {
+        out = {
             'num_rhyming_lines': num_rhyming_lines,
             'num_perfectly_rhyming_lines': num_perfectly_rhyming_lines,
             'num_lines': num_lines,
+            'rhyming_line_pairs': [
+                (l2.txt.strip(), l1.txt.strip(), score)
+                for l1, (score, l2) in rhyme_d.items()
+            ],
+            # 'rhyming_lines': [
+            #     l.txt.strip()
+            #     for l in sorted(all_rhyming_lines, key=lambda x: x.num)
+            # ],
+            # 'perfectly_rhyming_lines': [
+            #     l.txt.strip()
+            #     for l in sorted(all_perfectly_rhyming_lines, key=lambda x: x.num)
+            # ]
         }
     except Exception:
-        return {}
+        pass
+    
+    stash[stash_key] = out
+    return out
 
 
-def get_rhyme_for_sample(path_sample, force=False):
-    df = pd.read_csv(path_sample).fillna("").set_index('id')
-    ofn = path_sample.replace('.csv.gz', '.csv').replace('.csv', '.rhyme_data.csv')
-    if not force and os.path.exists(ofn):
-        df_rhymes = pd.read_csv(ofn).fillna("").set_index('id')
-    else:
-        df_rhymes = (
-            pd.DataFrame((get_rhyme_for_txt(txt) for txt in tqdm(df.txt)), index=df.index)
-            .dropna()
-            .applymap(int)
-        )
-        if 'line_sim' in df.columns:
-            line_sims = dict(zip(df.index, df.line_sim))
-            df_rhymes['line_sim'] = df_rhymes.index.map(line_sims)
-        df_rhymes.to_csv(ofn)
+
+# def get_rhyme_for_sample(path_sample, force=False):
+#     df = pd.read_csv(path_sample).fillna("").set_index('id')
+#     ofn = path_sample.replace('.csv.gz', '.csv').replace('.csv', '.rhyme_data.csv')
+#     if not force and os.path.exists(ofn):
+#         df_rhymes = pd.read_csv(ofn).fillna("").set_index('id')
+#     else:
+#         df_rhymes = (
+#             pd.DataFrame((get_rhyme_for_txt(txt) for txt in tqdm(df.txt)), index=df.index)
+#             .dropna()
+#             .applymap(int)
+#         )
+#         if 'line_sim' in df.columns:
+#             line_sims = dict(zip(df.index, df.line_sim))
+#             df_rhymes['line_sim'] = df_rhymes.index.map(line_sims)
+#         df_rhymes.to_csv(ofn)
+#     return postprocess_rhyme_sample(df, df_rhymes)
+
+def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=False):
+    df = df_smpl.fillna("")
+    if 'id_hash' in df.columns:
+        df = df.set_index('id_hash')
+    df = df.sort_index()
+
+    cache = dict(stash.items())
+
+    def get_res(txt):
+        if not force and txt in cache:
+            return cache[txt]
+        res = get_rhyme_for_txt(txt, max_dist=max_dist, stash=stash, force=force)
+        return res
+
+    df_rhymes = pd.DataFrame((get_res(txt) for txt in tqdm(df.txt)), index=df.index)
     return postprocess_rhyme_sample(df, df_rhymes)
 
 
 def postprocess_rhyme_sample(df_poems, df_rhymes, rhyme_threshold=4):
-    df = df_poems.join(df_rhymes, rsuffix='_prosodic', how='inner')
+    df = df_poems.join(df_rhymes, rsuffix='_prosodic', how='left')
     num_lines = df.num_lines_prosodic if 'num_lines_prosodic' in df.columns else df.num_lines
     df['num_lines_prosodic'] = pd.to_numeric(num_lines, errors='coerce')
     df['num_rhyming_lines'] = pd.to_numeric(df.num_rhyming_lines, errors='coerce')
@@ -65,6 +102,9 @@ def postprocess_rhyme_sample(df_poems, df_rhymes, rhyme_threshold=4):
         df['rhyme_bool'] = df.rhyme.apply(lambda x: (True if x == 'y' else (False if x == 'n' else None)))
     df['rhyme_pred'] = df.num_perfectly_rhyming_lines_per10l.apply(lambda x: x >= rhyme_threshold)
     df['rhyme_pred_perc'] = df.rhyme_pred * 100
+
+    if 'id' in df.columns:
+        df = df.drop_duplicates(subset='id')
     return df
 
 
@@ -219,4 +259,13 @@ def collect_genai_rhyme_promptings(
         save_sample(odf, PATH_SAMPLE_RHYMES, overwrite=overwrite)
     return odf
 
+
+
+
+
+
+
+
 ### METER
+
+

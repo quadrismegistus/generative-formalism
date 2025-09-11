@@ -6,3 +6,5 @@ litellm
 nest_asyncio
 google-cloud-aiplatform
 google-auth
+orjson
+orjsonl

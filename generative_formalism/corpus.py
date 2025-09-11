@@ -5,8 +5,8 @@ CORPUS = None
 
 def get_chadwyck_corpus_metadata(
     fields=CHADWYCK_CORPUS_FIELDS,
-    period_by=50,
-    download_if_necessary=False,
+    period_by=CORPUS_PERIOD_BY,
+    download_if_necessary=True,
     overwrite=False,
     min_num_lines=MIN_NUM_LINES,
     max_num_lines=MAX_NUM_LINES,
@@ -147,11 +147,9 @@ def get_chadwyck_corpus(*args, clean_poem=True, force=False, **kwargs):
 
 def sample_chadwyck_corpus(
         df_corpus,
-        min_sample_n=100,
-        max_sample_n=1000,
-        sample_by='period',
-        save_to=None,
-        overwrite=False,
+        sample_by,
+        min_sample_n=MIN_SAMPLE_N,
+        max_sample_n=MAX_SAMPLE_N,
         ):
 
     printm(f'#### Sampling corpus by {sample_by} (min {min_sample_n}, max {max_sample_n})')
@@ -165,132 +163,102 @@ def sample_chadwyck_corpus(
         df = df.groupby(sample_by).head(max_sample_n).sort_index()
 
     print(df.groupby(sample_by).size())
-
-    if save_to:
-        save_sample(df, save_to, overwrite=overwrite)
-
     return df
-        
-
-def get_chadwyck_corpus_sampled(
-    sample_type,
-    data_as_in_paper=True,
-    data_as_replicated=True,
-    replicate_if_missing=True,
-    replicate_save_to=None,
-    replicate_overwrite=True,
-):
-    """Base function for getting sampled corpus data by different criteria."""
-    
-    # Define paths and settings based on sample_type
-    if sample_type == 'period':
-        path_in_paper = PATH_SAMPLE_PERIOD_IN_PAPER
-        path_replicated = PATH_SAMPLE_PERIOD_REPLICATED
-        default_in_paper = USE_SAMPLE_PERIOD_IN_PAPER
-        default_replicated = USE_SAMPLE_PERIOD_REPLICATED
-        if replicate_save_to is None:
-            replicate_save_to = PATH_SAMPLE_PERIOD_REPLICATED
-    elif sample_type == 'rhyme':
-        path_in_paper = PATH_SAMPLE_RHYMES_IN_PAPER
-        path_replicated = PATH_SAMPLE_RHYMES_REPLICATED
-        default_in_paper = USE_SAMPLE_RHYMES_IN_PAPER
-        default_replicated = USE_SAMPLE_RHYMES_REPLICATED
-        if replicate_save_to is None:
-            replicate_save_to = PATH_SAMPLE_RHYMES_REPLICATED
-    else:
-        raise ValueError(f"Unknown sample_type: {sample_type}")
-    
-    printm(f'#### Getting sampled corpus by {sample_type}')
-    dfs = []
-    
-    if data_as_in_paper and os.path.exists(path_in_paper):
-        print(f'* Loading data as in paper: {path_in_paper}')
-        df = pd.read_csv(path_in_paper).set_index('id_hash')
-        dfs.append(df.assign(data_origin='in_paper'))
-    
-    if data_as_replicated:
-        if not replicate_overwrite and os.path.exists(path_replicated):
-            print(f'* Loading data as replicated: {path_replicated}')
-            df = pd.read_csv(path_replicated).set_index('id_hash')
-            dfs.append(df.assign(data_origin='replicated'))
-        elif replicate_if_missing:
-            if sample_type == 'rhyme':
-                print(f'* Replicating missing data: {path_replicated}')
-            df_corpus = get_chadwyck_corpus()
-            df = sample_chadwyck_corpus(
-                df_corpus,
-                sample_by=sample_type,
-                save_to=replicate_save_to,
-                overwrite=replicate_overwrite,
-            )
-            dfs.append(df.assign(data_origin='replicated'))
-    
-    return pd.concat(dfs)
 
 
-def get_chadwyck_corpus_sampled_by_period(
-    data_as_in_paper=USE_SAMPLE_PERIOD_IN_PAPER,
-    data_as_replicated=USE_SAMPLE_PERIOD_REPLICATED,
-    replicate_if_missing=True,
-    replicate_save_to=PATH_SAMPLE_PERIOD_REPLICATED,
-    replicate_overwrite=True,
-):
-    return get_chadwyck_corpus_sampled(
-        'period',
-        data_as_in_paper=data_as_in_paper,
-        data_as_replicated=data_as_replicated,
-        replicate_if_missing=replicate_if_missing,
-        replicate_save_to=replicate_save_to,
-        replicate_overwrite=replicate_overwrite,
-    )
-    
-
-def get_chadwyck_corpus_sampled_by_rhyme(
-    data_as_in_paper=USE_SAMPLE_RHYMES_IN_PAPER,
-    data_as_replicated=USE_SAMPLE_RHYMES_REPLICATED,
-    replicate_if_missing=True,
-    replicate_save_to=PATH_SAMPLE_RHYMES_REPLICATED,
-    replicate_overwrite=True,
-):
-    return get_chadwyck_corpus_sampled(
-        'rhyme',
-        data_as_in_paper=data_as_in_paper,
-        data_as_replicated=data_as_replicated,
-        replicate_if_missing=replicate_if_missing,
-        replicate_save_to=replicate_save_to,
-        replicate_overwrite=replicate_overwrite,
-    )
 
     
-def get_chadwyck_corpus_sampled_by_rhyme_as_in_paper(
-):
-    return get_chadwyck_corpus_sampled_by_rhyme(
-        data_as_in_paper=True,
-        data_as_replicated=False,
-    )
-def get_chadwyck_corpus_sampled_by_rhyme_as_replicated(replicate_save_to=PATH_SAMPLE_RHYMES_REPLICATED, replicated_overwrite=False, replicate_if_missing=True):
-    return get_chadwyck_corpus_sampled_by_rhyme(
-        data_as_in_paper=False,
-        data_as_replicated=True,
-        replicate_save_to=replicate_save_to,
-        replicate_overwrite=replicated_overwrite,
-        replicate_if_missing=replicate_if_missing,
-    )
+
+# def get_chadwyck
+    
+def get_chadwyck_corpus_sampled_by_rhyme_as_in_paper():
+    return pd.read_csv(PATH_SAMPLE_RHYMES_IN_PAPER).set_index('id_hash')
 
 def get_chadwyck_corpus_sampled_by_period_as_in_paper():
-    return get_chadwyck_corpus_sampled_by_period(
-        data_as_in_paper=True,
-        data_as_replicated=False,
-    )
+    return pd.read_csv(PATH_SAMPLE_PERIOD_IN_PAPER).set_index('id_hash')
 
-def get_chadwyck_corpus_sampled_by_period_as_replicated(replicate_save_to=PATH_SAMPLE_PERIOD_REPLICATED, replicated_overwrite=False, replicate_if_missing=True):
-    return get_chadwyck_corpus_sampled_by_period(
-        data_as_in_paper=False,
-        data_as_replicated=True,
-        replicate_save_to=replicate_save_to,
-        replicate_overwrite=replicated_overwrite,
-        replicate_if_missing=replicate_if_missing,
+def get_chadwyck_corpus_sampled_by_period_subcorpus_as_in_paper():
+    return pd.read_csv(PATH_SAMPLE_PERIOD_SUBCORPUS_IN_PAPER).set_index('id_hash')
+
+
+
+
+
+
+# Samplers
+
+def gen_chadwyck_corpus_sampled_by_rhyme():
+    df_corpus = get_chadwyck_corpus()
+    df_corpus = df_corpus[df_corpus.rhyme.isin({'y','n'})]
+    df = sample_chadwyck_corpus(
+        df_corpus,
+        sample_by='rhyme',
     )
+    return df
+
+def gen_chadwyck_corpus_sampled_by_period():
+    df_corpus = get_chadwyck_corpus()
+    df = sample_chadwyck_corpus(
+        df_corpus,
+        sample_by='period',
+    )
+    return df
+
+def gen_chadwyck_corpus_sampled_by_period_subcorpus():
+    df_corpus = get_chadwyck_corpus()
+    df = sample_chadwyck_corpus(
+        df_corpus,
+        sample_by=['period','subcorpus'],
+    )
+    return df
+
+def get_chadwyck_corpus_sampled_by_rhyme(force=False):
+    path = PATH_SAMPLE_RHYMES_REPLICATED
+    if force or not os.path.exists(path):
+        print(f'* Generating rhyme sample')
+        odf = gen_chadwyck_corpus_sampled_by_rhyme()
+        save_sample(odf, path, overwrite=True)
+    else:
+        print(f'* Loading rhyme sample from {path}')
+        odf = pd.read_csv(path).set_index('id_hash')
+    return odf
+
+def get_chadwyck_corpus_sampled_by_period(force=False):
+    path = PATH_SAMPLE_PERIOD_REPLICATED
+    if force or not os.path.exists(path):
+        print(f'* Generating period sample')
+        odf = gen_chadwyck_corpus_sampled_by_period()
+        save_sample(odf, path, overwrite=True)
+    else:
+        print(f'* Loading period sample from {path}')
+        odf = pd.read_csv(path).set_index('id_hash')
+    return odf
+
+def get_chadwyck_corpus_sampled_by_period_subcorpus(force=False):
+    path = PATH_SAMPLE_PERIOD_SUBCORPUS_REPLICATED
+    if force or not os.path.exists(path):
+        print(f'* Generating period subcorpus sample')
+        odf = gen_chadwyck_corpus_sampled_by_period_subcorpus()
+        save_sample(odf, path, overwrite=True)
+    else:
+        print(f'* Loading period subcorpus sample from {path}')
+        odf = pd.read_csv(path).set_index('id_hash')
+    return odf
+
+
+def get_chadwyck_corpus_sampled_by_rhyme_as_replicated(overwrite=False):
+    df_smpl = get_chadwyck_corpus_sampled_by_rhyme(force=overwrite)
+    return df_smpl
+
+def get_chadwyck_corpus_sampled_by_period_as_replicated(overwrite=False):
+    df_smpl = get_chadwyck_corpus_sampled_by_period(force=overwrite)
+    return df_smpl
+
+def get_chadwyck_corpus_sampled_by_period_subcorpus_as_replicated(overwrite=False):
+    df_smpl = get_chadwyck_corpus_sampled_by_period_subcorpus(force=overwrite)
+    return df_smpl
+
+
 
 
 def describe_corpus(dfx):
