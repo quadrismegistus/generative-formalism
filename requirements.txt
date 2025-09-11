@@ -1,5 +1,8 @@
 python-dotenv>=0.19.0 
 prosodic @ git+https://github.com/quadrismegistus/prosodic
-hashstash[rec] @ git+https://github.com/quadrismegistus/hashstash
-jupyterlab
+hashstash
 rapidfuzz
+litellm
+nest_asyncio
+google-cloud-aiplatform
+google-auth

@@ -4,6 +4,8 @@ import pandas as pd
 from dotenv import load_dotenv
 from tqdm import tqdm
 import plotnine as p9
+import asyncio
+import nest_asyncio
 from datetime import datetime
 import prosodic
 from hashstash import stashed_result
@@ -13,6 +15,8 @@ import numpy as np
 from warnings import filterwarnings
 filterwarnings('ignore')
 from functools import lru_cache
+from hashstash.engines.jsonl import JSONLHashStash
+from tqdm import tqdm
 cache = lru_cache(maxsize=1000)
 HIST = '(Historical)'
 
@@ -29,8 +33,23 @@ p9.options.dpi=300
 prosodic.USE_CACHE = False
 prosodic.LOG_LEVEL = 'CRITICAL'
 
-PATH_SAMPLE = f'../data/corpus_sample.csv.gz'
-PATH_SAMPLE_RHYMES = f'../data/corpus_sample_by_rhyme.csv'
+PATH_HERE = os.path.dirname(os.path.abspath(__file__))
+PATH_DATA = f'{PATH_HERE}/data'
+PATH_STASH = f'{PATH_DATA}/stash'
+PATH_STASH_GENAI_RHYME_PROMPTS = f'{PATH_STASH}/genai_rhyme_prompts.jsonl'
+PATH_STASH_GENAI_RHYME_COMPLETIONS = f'{PATH_STASH}/genai_rhyme_completions.jsonl'
+
+STASH_GENAI_RHYME_PROMPTS = JSONLHashStash(PATH_STASH_GENAI_RHYME_PROMPTS)
+STASH_GENAI_RHYME_COMPLETIONS = JSONLHashStash(PATH_STASH_GENAI_RHYME_COMPLETIONS)
+
+PATH_RAWDATA = f'{PATH_DATA}/raw'
+PATH_RAW_PKL = f'{PATH_RAWDATA}/data.allpoems.pkl.gz'
+PATH_RAW_JSON = f'{PATH_RAWDATA}/data.newpoems2.json.gz'
+
+PATH_SAMPLE = f'{PATH_DATA}/corpus_sample.csv.gz'
+PATH_SAMPLE_RHYMES = f'{PATH_DATA}/corpus_sample_by_rhyme.csv.gz'
+PATH_GENAI_PROMPTS = f'{PATH_DATA}/corpus_genai_promptings.csv.gz'
+PATH_GENAI_COMPLETIONS = f'{PATH_DATA}/corpus_genai_completions.csv.gz'
 
 
 EXCLUDE_PROMPTS = [
@@ -125,8 +144,49 @@ def get_chadwyck_corpus(
     odf['period'] = odf.author_dob.apply(get_period_dob)
     return odf
 
+def get_model_cleaned(x):
+    return x.split('/')[-1].strip().title().split('-20')[0].split(':')[0].replace('Gpt-','GPT-').split('-Chat')[0]
 
+def get_model_renamed(x):
+    return rename_model(x)
+    # if 'gpt-3' in x:
+    #     return 'ChatGPT'
+    # if 'gpt-4' in x:
+    #     return 'ChatGPT'
+    # elif 'claude-3' in x:
+    #     return 'Claude'
+    # elif 'llama3' in x:
+    #     return 'Llama'
+    # elif 'olmo2' in x:
+    #     return 'Olmo'
+    # elif 'deepseek' in x:
+    #     return 'DeepSeek'
+    # elif 'gemini' in x:
+    #     return 'Gemini'
+    # else:
+    #     return x
 
+def rename_model(x):
+    if x=='' or x==HIST:
+        return HIST
+    if 'text' in x:
+        return ''
+    if 'gpt-3' in x:
+        return 'ChatGPT'
+    if 'gpt-4' in x:
+        return 'ChatGPT'
+    elif 'claude-3' in x:
+        return 'Claude'
+    elif 'llama3' in x:
+        return 'Llama'
+    elif 'olmo2' in x:
+        return 'Olmo'
+    elif 'deepseek' in x:
+        return 'DeepSeek'
+    elif 'gemini' in x:
+        return 'Gemini'
+    else:
+        return ''
 
 def get_pred_stats(predictions, ground_truth, return_counts=False):
     """
@@ -169,10 +229,16 @@ def get_pred_stats(predictions, ground_truth, return_counts=False):
         'false_negatives': fn
     }
 
-PATH_PKL = '/Users/ryan/Dropbox/Prof/Data/data.allpoems.pkl'
-PATH_JSON = '/Users/ryan/Dropbox/Prof/Data/data.newpoems2.json'
 
 import json
+import sys
+import inspect
+from typing import AsyncGenerator
+
+try:
+    from litellm import acompletion
+except Exception:
+    acompletion = None
 
     
 def get_id_hash(id, seed=42, max_val=1000000):
@@ -184,11 +250,13 @@ def get_id_hash(id, seed=42, max_val=1000000):
 def save_sample(df, path_sample=PATH_SAMPLE, overwrite=False):
     if overwrite or not os.path.exists(path_sample):
         df.to_csv(path_sample)
-        print(f'Saved sample to {path_sample}')
+        print(f'  * Saved sample to {path_sample}')
     else:
-        path_sample_now = f'{os.path.splitext(path_sample)[0]}_{datetime.now().strftime("%Y-%m-%d-%H-%M")}.csv'
+        path_sample_now = f'{os.path.splitext(path_sample.replace(".gz",""))[0]}_{datetime.now().strftime("%Y-%m-%d-%H-%M")}.csv'
+        if path_sample.endswith('.csv.gz'):
+            path_sample_now +='.gz'
         df.to_csv(path_sample_now)
-        print(f'Saved new sample to {path_sample_now}')
+        print(f'  * Saved sample to {path_sample_now}')
 
 def get_id_hash_str(id):
     from hashlib import sha256
@@ -355,29 +423,232 @@ def get_rhyme_for_completed_poems(period_by=50, filter_line_sim=True, rename_mod
     df_meta = get_chadwyck_corpus(period_by=period_by)
     df = df.merge(df_meta, left_on='id_human', right_on='id', suffixes=['','_meta'], how='left')
 
-    def rename_model(x):
-        if x=='' or x==HIST:
-            return HIST
-        if 'text' in x:
-            return ''
-        if 'gpt-3' in x:
-            return 'ChatGPT'
-        if 'gpt-4' in x:
-            return 'ChatGPT'
-        elif 'claude-3' in x:
-            return 'Claude'
-        elif 'llama3' in x:
-            return 'Llama'
-        elif 'olmo2' in x:
-            return 'Olmo'
-        elif 'deepseek' in x:
-            return 'DeepSeek'
-        elif 'gemini' in x:
-            return 'Gemini'
-        else:
-            return ''
     
     if rename_models:
+        df['model9'] = df.model.apply(get_model_cleaned)
         df['model']=df.model.apply(rename_model)
         df = df[df.model!='']
     return df 
+
+def clean_genai_poem(txt):
+    stanzas = txt.split('\n\n')
+    stanzas = [st.strip() for st in stanzas if st.strip().count('\n')>0]
+    return '\n\n'.join(stanzas)
+
+def get_num_lines(txt):
+    return len([x for x in txt.split('\n') if x.strip()])
+
+
+def printm(text, *args, **kwargs):
+    """Print markdown if in Jupyter environment, otherwise normal print"""
+    try:
+        # Check if we're in a Jupyter environment
+        from IPython.display import display, Markdown
+        get_ipython()  # This will raise NameError if not in IPython/Jupyter
+        
+        # If we have additional args or certain kwargs, fall back to regular print
+        if args or any(k in kwargs for k in ['file', 'flush']):
+            print(text, *args, **kwargs)
+        else:
+            # Display as markdown
+            display(Markdown(str(text)))
+    except (NameError, ImportError):
+        # Not in Jupyter or IPython not available, use regular print
+        print(text, *args, **kwargs)
+
+
+async def stream_llm_litellm(model: str, prompt: str, temperature: float = 0.7, system_prompt: str = None, verbose: bool = False) -> AsyncGenerator[str, None]:
+    """Stream tokens using LiteLLM for non-Gemini providers.
+
+    Args:
+        model: Provider-specific model identifier (e.g., "gpt-4o-mini", "claude-3-5-sonnet-20240620").
+        prompt: The user prompt to send.
+        temperature: Sampling temperature.
+
+    Yields:
+        Token strings as they arrive.
+    """
+    if acompletion is None:
+        raise RuntimeError("litellm is not installed.  `pip install litellm`")
+
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+
+    try:
+        response = await acompletion(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            stream=True,
+            timeout=300,
+            max_tokens=1024,
+        )
+        async for chunk in response:
+            try:
+                delta = None
+                if hasattr(chunk, "choices") and chunk.choices:
+                    choice0 = chunk.choices[0]
+                    delta = getattr(choice0, "delta", None)
+                    if delta is not None:
+                        token = getattr(delta, "content", None)
+                    else:
+                        # Fallback some providers use message.content even in stream
+                        message = getattr(choice0, "message", None)
+                        token = None
+                        if message is not None:
+                            token = getattr(message, "content", None)
+                else:
+                    token = None
+                if token:
+                    yield token
+                    if verbose:
+                        print(token,end="",flush=True)
+            except Exception:
+                # Ignore malformed chunks and continue
+                continue
+    except Exception as e:
+        print(f"LiteLLM streaming error: {e}", file=sys.stderr)
+        raise
+
+
+def _extract_google_model_name(model: str) -> str | None:
+    """Return inner model name if model starts with the required 'google/' prefix."""
+    if not isinstance(model, str):
+        return None
+    if model.lower().startswith("google/"):
+        return model.split("/", 1)[1]
+    return None
+
+
+async def stream_llm_genai(model: str, prompt: str, temperature: float = 0.7, system_prompt: str = None, verbose: bool = False) -> AsyncGenerator[str, None]:
+    """Stream tokens from Google Gemini using API key via google-generativeai.
+
+    The dispatcher expects `model` like 'google/gemini-1.5-pro-latest'.
+    """
+    inner_model = _extract_google_model_name(model)
+    if not inner_model:
+        raise ValueError("stream_llm_genai expects model starting with 'google/'")
+
+    try:
+        import google.generativeai as genai  # type: ignore
+    except Exception as e:
+        raise RuntimeError(
+            "google-generativeai is not installed. `pip install google-generativeai`"
+        ) from e
+
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise RuntimeError("Missing GEMINI_API_KEY or GOOGLE_API_KEY in environment")
+
+    genai.configure(api_key=api_key)
+
+    # Attach system instruction if provided
+    model_kwargs = {}
+    if system_prompt:
+        model_kwargs["system_instruction"] = system_prompt
+
+    gmodel = genai.GenerativeModel(model_name=inner_model, **model_kwargs)
+
+    generation_config = {
+        "temperature": float(temperature),
+        "max_output_tokens": 1024,
+    }
+
+    try:
+        response = gmodel.generate_content(
+            prompt,
+            generation_config=generation_config,
+            stream=True,
+        )
+        for chunk in response:
+            try:
+                text = getattr(chunk, "text", None)
+                if text:
+                    yield text
+                    if verbose:
+                        print(text, end="", flush=True)
+            except Exception:
+                continue
+    except Exception as e:
+        print(f"Gemini streaming error: {e}", file=sys.stderr)
+        raise
+
+
+async def stream_llm(model: str, prompt: str, temperature: float = 0.7, system_prompt: str = None, verbose: bool = False) -> AsyncGenerator[str, None]:
+    """Dispatcher: route to google-generativeai or LiteLLM based on model prefix.
+
+    - If model starts with 'google/', use Gemini via API key.
+    - Otherwise, fall back to LiteLLM.
+    """
+    if _extract_google_model_name(model):
+        async for token in stream_llm_genai(model=model, prompt=prompt, temperature=temperature, system_prompt=system_prompt, verbose=verbose):
+            yield token
+        return
+    async for token in stream_llm_litellm(model=model, prompt=prompt, temperature=temperature, system_prompt=system_prompt, verbose=verbose):
+        yield token
+
+
+async def generate_text_async(model: str, prompt: str, temperature: float = 0.7, system_prompt: str = None, verbose: bool = False) -> str:
+    """Convenience wrapper that returns the full text by consuming the stream."""
+    output_parts = []
+    async for token in stream_llm(model=model, prompt=prompt, temperature=temperature, system_prompt=system_prompt, verbose=verbose):
+        output_parts.append(token)
+    return "".join(output_parts)
+
+async def collect_async_generator(async_generator):
+    result = []
+    async for item in async_generator:
+        result.append(item)
+    return result
+
+
+def run_async(async_func, *args, **kwargs):
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    obj = async_func(*args, **kwargs)
+    if inspect.isasyncgen(obj):
+        awaitable = collect_async_generator(obj)
+    elif inspect.iscoroutine(obj) or isinstance(obj, asyncio.Future):
+        awaitable = obj
+    else:
+        raise TypeError("run_async expected coroutine or async generator")
+
+    if loop.is_running():
+        nest_asyncio.apply()
+        return loop.run_until_complete(awaitable)
+    else:
+        return loop.run_until_complete(awaitable)
+
+
+
+def generate_text(model: str, prompt: str, temperature: float = 0.7, system_prompt: str = None, verbose: bool = False, force: bool = False) -> str:
+    key = {
+        'model':model,
+        'prompt':prompt,
+        'temperature':temperature,
+        'system_prompt':system_prompt,
+    }
+    if not force and key in STASH_GENAI_RHYME_PROMPTS:
+        out = STASH_GENAI_RHYME_PROMPTS[key]
+        if verbose:
+            print(out)
+        return out
+    
+    response = run_async(
+        generate_text_async, 
+        model=model, 
+        prompt=prompt, 
+        temperature=temperature, 
+        system_prompt=system_prompt, 
+        verbose=verbose
+    )
+    
+    STASH_GENAI_RHYME_PROMPTS[key] = response
+    
+    return response
