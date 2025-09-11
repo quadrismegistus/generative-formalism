@@ -9,7 +9,8 @@ from functools import lru_cache
 from typing import AsyncGenerator
 import gzip
 from warnings import filterwarnings
-
+import requests
+import zipfile
 import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
@@ -20,6 +21,7 @@ import prosodic
 from hashstash import stashed_result
 from hashstash.engines.jsonl import JSONLHashStash
 from rapidfuzz import fuzz
+pd.options.display.max_rows = 100
 
 try:
     from litellm import acompletion

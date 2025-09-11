@@ -185,7 +185,7 @@ def collect_genai_rhyme_promptings(
     df_prompts = pd.concat(dfs)
 
     # Set other cols
-    df_prompts['txt'] = df_prompts.response.apply(clean_genai_poem)
+    df_prompts['txt'] = df_prompts.response.apply(clean_poem_str)
     df_prompts['num_lines'] = df_prompts.txt.apply(get_num_lines)
     df_prompts['prompt_type'] = df_prompts.prompt.apply(lambda x: PROMPT_TO_TYPE.get(x, 'Unknown'))
     df_prompts['temperature'] = pd.to_numeric(df_prompts.temperature, errors='coerce')
@@ -209,7 +209,7 @@ def collect_genai_rhyme_promptings(
     id_list = [get_id_hash_str(f'{model}__{temp:.4f}__{prompt}__{txt}') for model,temp,prompt,txt in zip(df_prompts.model,df_prompts.temperature,df_prompts.prompt,df_prompts.txt)]
     df_prompts['id_hash'] = [get_id_hash(id) for id in id_list]
     df_prompts = df_prompts.sort_values('id_hash')
-    df_prompts['txt'] = df_prompts.txt.apply(clean_genai_poem)
+    df_prompts['txt'] = df_prompts.txt.apply(clean_poem_str)
     df_prompts['num_lines'] = df_prompts.txt.apply(get_num_lines)
     
     df_prompts = df_prompts.query(f'num_lines >= {min_lines} and num_lines <= {max_lines}')

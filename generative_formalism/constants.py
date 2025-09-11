@@ -18,9 +18,6 @@ STASH_GENAI_RHYME_PROMPTS = JSONLHashStash(PATH_STASH_GENAI_RHYME_PROMPTS)
 STASH_GENAI_RHYME_COMPLETIONS = JSONLHashStash(PATH_STASH_GENAI_RHYME_COMPLETIONS)
 STASH_GENAI = JSONLHashStash(PATH_STASH_GENAI)
 
-# External data env vars
-PATH_CHADWYCK_HEALEY_TXT = os.path.expanduser(os.getenv('PATH_CHADWYCK_HEALEY_TXT', ''))
-PATH_CHADWYCK_HEALEY_METADATA = os.path.expanduser(os.getenv('PATH_CHADWYCK_HEALEY_METADATA', ''))
 
 
 # Raw data paths
@@ -30,27 +27,44 @@ PATH_RAW_JSON = f'{PATH_RAWDATA}/data.newpoems2.json.gz'
 
 
 # Samples
-PATH_SAMPLE = f'{PATH_DATA}/corpus_sample.csv.gz'
-PATH_SAMPLE_RHYMES = f'{PATH_DATA}/corpus_sample_by_rhyme.csv.gz'
-PATH_GENAI_PROMPTS = f'{PATH_DATA}/corpus_genai_promptings.csv.gz'
-PATH_GENAI_COMPLETIONS = f'{PATH_DATA}/corpus_genai_completions.csv.gz'
+PATH_SAMPLE_PERIOD_IN_PAPER = f'{PATH_DATA}/corpus_sample_by_period.data_as_in_paper.csv.gz'
+PATH_SAMPLE_RHYMES_IN_PAPER = f'{PATH_DATA}/corpus_sample_by_rhyme.data_as_in_paper.csv.gz'
+PATH_GENAI_PROMPTS_IN_PAPER = f'{PATH_DATA}/corpus_genai_promptings.data_as_in_paper.csv.gz'
+PATH_GENAI_COMPLETIONS_IN_PAPER = f'{PATH_DATA}/corpus_genai_completions.data_as_in_paper.csv.gz'
+
+PATH_SAMPLE_PERIOD_REPLICATED = PATH_SAMPLE_PERIOD_IN_PAPER.replace('.data_as_in_paper', '.data_as_replicated')
+PATH_SAMPLE_RHYMES_REPLICATED = PATH_SAMPLE_RHYMES_IN_PAPER.replace('.data_as_in_paper', '.data_as_replicated')
+PATH_GENAI_PROMPTS_REPLICATED = PATH_GENAI_PROMPTS_IN_PAPER.replace('.data_as_in_paper', '.data_as_replicated')
+PATH_GENAI_COMPLETIONS_REPLICATED = PATH_GENAI_COMPLETIONS_IN_PAPER.replace('.data_as_in_paper', '.data_as_replicated')
+
+USE_SAMPLE_PERIOD_IN_PAPER = True
+USE_SAMPLE_PERIOD_REPLICATED = True
+
+USE_SAMPLE_RHYMES_IN_PAPER = True
+USE_SAMPLE_RHYMES_REPLICATED = True
+
+USE_GENAI_PROMPTS_IN_PAPER = True
+USE_GENAI_PROMPTS_REPLICATED = True
+
+USE_GENAI_COMPLETIONS_IN_PAPER = True
+USE_GENAI_COMPLETIONS_REPLICATED = True
+
+# PATH_SAMPLE = PATH_SAMPLE_REPLICATED if USE_SAMPLE_REPLICATED else PATH_SAMPLE_IN_PAPER
+# PATH_SAMPLE_RHYMES = PATH_SAMPLE_RHYMES_REPLICATED if USE_SAMPLE_RHYMES_REPLICATED else PATH_SAMPLE_RHYMES_IN_PAPER
+# PATH_GENAI_PROMPTS = PATH_GENAI_PROMPTS_REPLICATED if USE_GENAI_PROMPTS_REPLICATED else PATH_GENAI_PROMPTS_IN_PAPER
+# PATH_GENAI_COMPLETIONS = PATH_GENAI_COMPLETIONS_REPLICATED if USE_GENAI_COMPLETIONS_REPLICATED else PATH_GENAI_COMPLETIONS_IN_PAPER
 
 
-# Metadata fields mapping
-CHADWYCK_CORPUS_FIELDS = {
-    'id_hash': 'id_hash',
-    'attperi_str': 'period_meta',
-    'attdbase_str': 'subcorpus',
-    'author': 'author',
-    'author_dob': 'author_dob',
-    'title': 'title',
-    'year': 'year',
-    'num_lines': 'num_lines',
-    'volhead': 'volume',
-    'l': 'line',
-    'attrhyme': 'rhyme',
-    'attgenre': 'genre',
-}
+# External data env vars
+PATH_CORPUS = f'{PATH_DATA}/chadwyck_poetry'
+PATH_CHADWYCK_HEALEY_TXT = f'{PATH_CORPUS}/txt'
+PATH_CHADWYCK_HEALEY_METADATA = f'{PATH_CORPUS}/metadata.csv'
+
+
+# Set in .env or here
+URL_CHADWYCK_HEALEY_TXT = os.getenv('URL_CHADWYCK_HEALEY_TXT', '')
+URL_CHADWYCK_HEALEY_METADATA = os.getenv('URL_CHADWYCK_HEALEY_METADATA', '')
+
 
 
 # PROMPTS
@@ -109,3 +123,141 @@ MODEL_LIST = [
 # Demos
 DEMO_MODEL = MODEL_LIST[0]
 DEMO_PROMPT = PROMPTS['do_NOT_rhyme'][0]
+
+
+# API Keys
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', '')
+
+
+
+
+# Metadata fields mapping
+CHADWYCK_CORPUS_FIELDS = {
+    'id': 'id',
+    'id_hash': 'id_hash',
+    'attperi_str': 'period_meta',
+    'attdbase_str': 'subcorpus',
+    'author': 'author',
+    'author_dob': 'author_dob',
+    'title': 'title',
+    'year': 'year',
+    'num_lines': 'num_lines',
+    'volhead': 'volume',
+    'l': 'line',
+    'attrhyme': 'rhyme',
+    'attgenre': 'genre',
+}
+ALL_CHADWYCK_CORPUS_FIELDS = [
+#  'Unnamed: 0',
+ '_llp_',
+ '_path',
+ 'a1',
+ 'alias',
+ 'aliasinv',
+ 'anote',
+ 'argument',
+ 'attauth',
+ 'attautid',
+ 'attbytes',
+ 'attdbase',
+ 'attgend',
+ 'attgenre',
+ 'attidref',
+ 'attnatn',
+ 'attperi',
+ 'attpoet',
+ 'attpubl',
+ 'attpubn1',
+ 'attpubn2',
+ 'attrhyme',
+ 'attsize',
+ 'attview',
+ 'audclip',
+ 'audio',
+ 'authdtls',
+ 'author',
+ 'author_dob',
+ 'author_dod',
+ 'author_gender',
+ 'bnote',
+ 'bo',
+ 'break',
+ 'bytes',
+ 'caesura',
+ 'caption',
+ 'cell',
+ 'chid',
+ 'collection',
+ 'conclude',
+ 'corpus',
+ 'dedicat',
+ 'engcorp2',
+ 'epigraph',
+ 'epilogue',
+ 'figure',
+ 'firstl',
+ 'gap',
+ 'greek',
+ 'hi',
+ 'hideinft',
+ 'id',
+ 'idref',
+ 'idz',
+ 'img',
+ 'it',
+ 'item',
+ 'l',
+ 'label',
+ 'lacuna',
+ 'lb',
+ 'litpack',
+ 'mainhead',
+ 'note',
+ 'num_lines',
+ 'p',
+ 'pb',
+ 'pbl',
+ 'pndfig',
+ 'poemcopy',
+ 'posthumous',
+ 'preface',
+ 'prologue',
+ 'publish',
+ 'reflink',
+ 'removed',
+ 'signed',
+ 'sl',
+ 'somauth',
+ 'sombiog',
+ 'sompoet',
+ 'speaker',
+ 'stage',
+ 'sub',
+ 'subhead',
+ 'sup',
+ 't1',
+ 't2',
+ 't3',
+ 'target',
+ 'title',
+ 'title_volume',
+ 'trailer',
+ 'ty',
+ 'u',
+ 'usonly',
+ 'video',
+ 'volhead',
+ 'xref',
+ 'y1',
+ 'year',
+ 'year_new',
+ 'year_old']
+
+
+MIN_NUM_LINES = 10
+MAX_NUM_LINES = 100
+MIN_AUTHOR_DOB = 1600
+MAX_AUTHOR_DOB = 2000
