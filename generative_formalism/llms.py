@@ -185,3 +185,42 @@ PROMPT_LIST = list(PROMPT_TO_TYPE.keys())
 MODEL_TO_TYPE = {m:get_model_renamed(m) for m in MODEL_LIST}
 MODEL_TO_NAME = {m:get_model_cleaned(m) for m in MODEL_LIST}
 
+
+
+def describe_prompts(prompts=PROMPT_LIST, prompt_to_type=PROMPT_TO_TYPE):
+    """Print a description of the prompts with statistics and details.
+    
+    Args:
+        prompts: List of prompt strings to describe. Defaults to PROMPT_LIST.
+        prompt_to_type: Dictionary mapping prompts to their types. Defaults to PROMPT_TO_TYPE.
+    """
+    type_to_prompts = {v:[] for v in set(prompt_to_type.values())}
+    for prompt, type in prompt_to_type.items():
+        type_to_prompts[type].append(prompt)
+    print(f'''* {len(set(prompts))} unique prompts
+* {len(set([prompt_to_type.get(p, p) for p in prompts]))} prompt types
+
+* List of prompts:
+  {pformat(prompts)}
+
+* List of prompt types:
+  {pformat(type_to_prompts)}
+''')
+
+def describe_models(models=MODEL_LIST, model_to_type=MODEL_TO_TYPE):
+    """Print a description of the models with statistics and details.
+    
+    Args:
+        models: List of model strings to describe. Defaults to MODEL_LIST.
+        model_to_type: Dictionary mapping models to their types. Defaults to MODEL_TO_TYPE.
+        model_to_name: Dictionary mapping models to their names. Defaults to MODEL_TO_NAME.
+    """
+    type_to_models = {v:[] for v in set(model_to_type.values())}
+    for model, type in model_to_type.items():
+        type_to_models[type].append(model)
+    # Models
+    print(f'''* {len(models)} models (counting parameter changes)
+  * {len(type_to_models)} model types ({", ".join(sorted(type_to_models.keys()))})
+  * Using models:
+  {pformat(type_to_models, indent=4)}
+  ''')
