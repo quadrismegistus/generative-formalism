@@ -271,7 +271,7 @@ def describe_qual_grouped(s, groupby, sort_index=False, count=True):
 
 
 # Attempt to render LaTeX -> PNG using local TeX toolchain; fallback to matplotlib image
-def render_latex_to_png(tex_body, out_png_path):
+def render_latex_to_png(tex_body, out_png_path, verbose=False):
     import tempfile
     import subprocess
     import shutil
@@ -313,7 +313,8 @@ def render_latex_to_png(tex_body, out_png_path):
                     check=True,
                 )
             except Exception as e:
-                print(f'* LaTeX compile failed: {e}')
+                if verbose:
+                    print(f'* LaTeX compile failed: {e}')
                 return False
             # Convert PDF -> PNG (300 DPI)
             try:
@@ -337,7 +338,8 @@ def render_latex_to_png(tex_body, out_png_path):
                 shutil.copyfile(tmp_png, out_png_path)
                 return True
             except Exception as e:
-                print(f'* PDF->PNG conversion failed: {e}')
+                if verbose:
+                    print(f'* PDF->PNG conversion failed: {e}')
                 return False
 
 
@@ -362,6 +364,7 @@ def df_to_latex_table(
     inner_latex: str | None = None,
     longtable: bool = False,
     header: list[str] | None = None,
+    verbose: bool = False,
 ):
     """Render a DataFrame (or provided LaTeX tabular) into a LaTeX table.
 
@@ -449,19 +452,23 @@ def df_to_latex_table(
             save_path = save_latex_to
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         with open(save_path, 'w') as f:
-            print(f'* Writing LaTeX to {save_path}')
+            if verbose:
+                print(f'* writing LaTeX to {save_path}')
             f.write(latex_str)
 
         if return_display:
             try:
                 from IPython.display import Image  # type: ignore
                 png_path = save_path[:-4] + '.png' if save_path.endswith('.tex') else save_path + '.png'
-                print(f'* Rendering PNG to {png_path}')
-                ok = render_latex_to_png(latex_str, png_path)
+                try:
+                    ok = render_latex_to_png(latex_str, png_path)
+                except Exception as e:
+                    pass
                 if ok:
                     return Image(png_path)
                 else:
-                    print(f"* Warning: Could not render PNG")
+                    if verbose:
+                        print(f"* warning: could not render PNG")
             except (NameError, ImportError):
                 pass
         return save_path
@@ -476,7 +483,7 @@ def nice_path(path):
     return path.replace(PATH_REPO, '{PATH_REPO}')
 
 
-def documentation(func, docstring=True, signature=True, source=False):
+def documentation(func, docstring=True, signature=False, source=False):
     if source:
         signature = False
     try:
@@ -498,16 +505,16 @@ def documentation(func, docstring=True, signature=True, source=False):
         if pretty_sig == bad_sig:
             pretty_sig = short_sig
         
-        markdown_content = f"**Documentation for `{func.__name__}`**"
+        markdown_content = f"**`{func.__name__}`**"
         
         if docstring:
             markdown_content += f"""
 
-*Description*
-
 ```md
 {func.__doc__}
-```"""
+```
+----
+"""
         
         if signature:
             markdown_content += f"""

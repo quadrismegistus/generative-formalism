@@ -1,7 +1,29 @@
+"""Language model utilities for text generation using various LLM providers.
+
+This module provides unified interfaces for working with different language models
+through LiteLLM and Google's Generative AI, including streaming and caching capabilities.
+"""
+
 from . import *
 
 
 async def stream_llm_litellm(model: str, prompt: str, temperature: float = 0.7, system_prompt: str | None = None, verbose: bool = False) -> AsyncGenerator[str, None]:
+    """Stream text generation from language models using LiteLLM.
+    
+    Args:
+        model: The model identifier (e.g., 'gpt-4', 'claude-3-opus-20240229')
+        prompt: The user prompt/input text
+        temperature: Sampling temperature for text generation (0.0-1.0)
+        system_prompt: Optional system prompt to set model behavior
+        verbose: If True, print tokens to stdout as they're generated
+        
+    Yields:
+        str: Individual tokens/text chunks from the model response
+        
+    Raises:
+        RuntimeError: If litellm is not installed
+        Exception: If the LLM request fails
+    """
     if acompletion is None:
         raise RuntimeError('litellm is not installed.  `pip install litellm`')
     messages = []
@@ -41,6 +63,23 @@ async def stream_llm_litellm(model: str, prompt: str, temperature: float = 0.7, 
 
 
 async def stream_llm_genai(model: str, prompt: str, temperature: float = 0.7, system_prompt: str | None = None, verbose: bool = False) -> AsyncGenerator[str, None]:
+    """Stream text generation from Google Generative AI models.
+    
+    Args:
+        model: The Google model identifier (must start with 'google/')
+        prompt: The user prompt/input text
+        temperature: Sampling temperature for text generation (0.0-1.0)
+        system_prompt: Optional system instruction for the model
+        verbose: If True, print tokens to stdout as they're generated
+        
+    Yields:
+        str: Individual text chunks from the model response
+        
+    Raises:
+        ValueError: If model doesn't start with 'google/'
+        RuntimeError: If google-generativeai is not installed or API key is missing
+        Exception: If the Gemini API request fails
+    """
     inner_model = _extract_google_model_name(model)
     if not inner_model:
         raise ValueError("stream_llm_genai expects model starting with 'google/'")
@@ -74,15 +113,46 @@ async def stream_llm_genai(model: str, prompt: str, temperature: float = 0.7, sy
 
 
 async def stream_llm(model: str, prompt: str, temperature: float = 0.7, system_prompt: str | None = None, verbose: bool = False) -> AsyncGenerator[str, None]:
-    if _extract_google_model_name(model):
-        async for token in stream_llm_genai(model=model, prompt=prompt, temperature=temperature, system_prompt=system_prompt, verbose=verbose):
+    """Universal streaming interface for language models.
+    
+    Automatically routes to the appropriate streaming function based on the model name.
+    Google models (containing 'gemini') use the Google Generative AI API,
+    all others use LiteLLM.
+    
+    Args:
+        model: The model identifier
+        prompt: The user prompt/input text
+        temperature: Sampling temperature for text generation (0.0-1.0)
+        system_prompt: Optional system prompt/instruction
+        verbose: If True, print tokens to stdout as they're generated
+        
+    Yields:
+        str: Individual tokens/text chunks from the model response
+    """
+    stream_func = stream_llm_genai if _extract_google_model_name(model) else stream_llm_litellm
+
+    try:    
+        async for token in stream_func(model=model, prompt=prompt, temperature=temperature, system_prompt=system_prompt, verbose=verbose):
             yield token
-        return
-    async for token in stream_llm_litellm(model=model, prompt=prompt, temperature=temperature, system_prompt=system_prompt, verbose=verbose):
-        yield token
+    except Exception as e:
+        print(f'Stream error: {e}', file=sys.stderr)
 
 
 async def generate_text_async(model: str, prompt: str, temperature: float = 0.7, system_prompt: str | None = None, verbose: bool = False) -> str:
+    """Generate complete text response asynchronously using streaming.
+    
+    Collects all streamed tokens and returns the complete response as a single string.
+    
+    Args:
+        model: The model identifier
+        prompt: The user prompt/input text
+        temperature: Sampling temperature for text generation (0.0-1.0)
+        system_prompt: Optional system prompt/instruction
+        verbose: If True, print tokens to stdout as they're generated
+        
+    Returns:
+        str: The complete generated text response
+    """
     output_parts: list[str] = []
     # print(f'* model: {model}')
     # print(f'* prompt: {prompt}')
@@ -93,9 +163,50 @@ async def generate_text_async(model: str, prompt: str, temperature: float = 0.7,
         output_parts.append(token)
     return ''.join(output_parts)
 
+def check_api_keys():
+    """
+    Check if the API keys are set in the environment.
 
+    Defaults to the environment variables set in the .env file.
 
-def generate_text(model: str, prompt: str, temperature: float = 0.7, system_prompt: str | None = None, verbose: bool = False, force: bool = False, stash: 'BaseHashStash' = STASH_GENAI) -> str:
+    Variables used:
+    - GEMINI_API_KEY: Google Gemini API key
+    - OPENAI_API_KEY: OpenAI API key
+    - ANTHROPIC_API_KEY: Anthropic (Claude) API key
+    - DEEPSEEK_API_KEY: DeepSeek API key
+    """
+    print(f'{"✓" if GEMINI_API_KEY else "X"} Gemini API key')
+    print(f'{"✓" if OPENAI_API_KEY else "X"} OpenAI API key')
+    print(f'{"✓" if ANTHROPIC_API_KEY else "X"} Anthropic API key')
+    print(f'{"✓" if DEEPSEEK_API_KEY else "X"} DeepSeek API key')
+
+def generate_text(model: str, prompt: str, temperature: float = DEFAULT_TEMPERATURE, system_prompt: str | None = None, verbose: bool = False, force: bool = False, stash: 'BaseHashStash' = STASH_GENAI) -> str:
+    """Generate text with caching support (synchronous interface).
+    
+    This is the main text generation function that includes caching capabilities.
+    Results are cached based on the combination of model, prompt, temperature, and system_prompt.
+    
+    Args:
+        model: The model identifier
+        prompt: The user prompt/input text
+        temperature: Sampling temperature for text generation (0.0-1.0)
+        system_prompt: Optional system prompt/instruction
+        verbose: If True, print the complete response to stdout
+        force: If True, bypass cache and force new generation
+        stash: Cache storage backend for results
+        
+    Returns:
+        str: The complete generated text response (from cache or new generation)
+    """
+    if verbose:
+        print(f'* Generating text')
+        print(f'  * model: {model}')
+        print(f'  * prompt: {prompt.replace("\n", " ").strip()[:100]}')
+        print(f'  * temperature: {temperature}')
+        if system_prompt:
+            print(f'* system_prompt: {system_prompt.replace("\n", " ").strip()[:100]}')
+        print(f'  * force: {force}')
+        print(f'  * stash: {stash}')
     key = {
         'model': model,
         'prompt': prompt,
@@ -103,19 +214,28 @@ def generate_text(model: str, prompt: str, temperature: float = 0.7, system_prom
         'system_prompt': system_prompt,
     }
     if not force and key in stash:
-        out = stash[key]
         if verbose:
-            print(out)
-        return out
-    response = run_async(
-        generate_text_async,
-        model=model,
-        prompt=prompt,
-        temperature=temperature,
-        system_prompt=system_prompt,
-        verbose=verbose,
-    )
-    stash[key] = response
+            print(f'  * from_cache: True')
+        response = stash[key]
+        if verbose:
+            for word in response.split(' '):
+                print(word, end=' ', flush=True)
+                time.sleep(random.uniform(0.01, 0.03))
+    else:
+        if verbose:
+            print(f'  * from_cache: False\n')
+        # print(f'\n* Generating new text:')
+        response = run_async(
+            generate_text_async,
+            model=model,
+            prompt=prompt,
+            temperature=temperature,
+            system_prompt=system_prompt,
+            verbose=verbose,
+        )
+        # if verbose:
+            # print(f'\n> Response: {response.replace("\n", " ").strip()[:100]}...')
+        stash[key] = response
     return response
 
 
@@ -124,6 +244,23 @@ def generate_text(model: str, prompt: str, temperature: float = 0.7, system_prom
 
 
 def get_model_cleaned(x: str) -> str:
+    """Clean and format model name for display purposes.
+    
+    Extracts the core model name, removes version suffixes, and applies
+    title case formatting with special handling for GPT models.
+    
+    Args:
+        x: Raw model identifier string
+        
+    Returns:
+        str: Cleaned and formatted model name
+        
+    Examples:
+        >>> get_model_cleaned('openai/gpt-4-turbo-preview')
+        'GPT-4-Turbo-Preview'
+        >>> get_model_cleaned('anthropic/claude-3-opus-20240229')
+        'Claude-3-Opus'
+    """
     return (
         x.split('/')[-1].strip().title().split('-20')[0].split(':')[0]
         .replace('Gpt-', 'GPT-').split('-Chat')[0]
@@ -131,6 +268,19 @@ def get_model_cleaned(x: str) -> str:
 
 
 def rename_model(x: str) -> str:
+    """Map model identifiers to standardized family names.
+    
+    Converts various model identifiers to consistent family names
+    for grouping and analysis purposes.
+    
+    Args:
+        x: Model identifier string
+        
+    Returns:
+        str: Standardized model family name (e.g., 'ChatGPT', 'Claude', 'Llama')
+             Returns empty string for text models or unrecognized models
+             Returns HIST constant for historical/empty models
+    """
     if x == '' or x == HIST:
         return HIST
     if 'text' in x:
@@ -154,16 +304,45 @@ def rename_model(x: str) -> str:
 
 
 def get_model_renamed(x: str) -> str:
+    """Alias for rename_model function.
+    
+    Args:
+        x: Model identifier string
+        
+    Returns:
+        str: Standardized model family name
+    """
     return rename_model(x)
 
 
 def _extract_google_model_name(model: str, prefix:str='google/') -> str | None:
+    """Extract the actual Google model name from a prefixed identifier.
+    
+    Removes the provider prefix and applies any necessary model name transformations
+    for compatibility with the Google Generative AI API.
+    
+    Args:
+        model: Full model identifier (e.g., 'google/gemini-pro')
+        prefix: Provider prefix to remove (default: 'google/')
+        
+    Returns:
+        str | None: The extracted model name, or None if not a Google model
+                   'gemini-pro' is automatically converted to 'gemini-1.5-pro'
+    """
     if not is_google_model(model):
         return None
     model = model.replace('gemini-pro', 'gemini-1.5-pro')
     return model.replace(prefix, '')
 
-def is_google_model(model:str):
+def is_google_model(model: str) -> bool | None:
+    """Check if a model identifier refers to a Google/Gemini model.
+    
+    Args:
+        model: Model identifier string to check
+        
+    Returns:
+        bool | None: True if model contains 'gemini', None if model is invalid/empty
+    """
     if not isinstance(model, str) or not model:
         return None
     return 'gemini' in model

@@ -94,9 +94,33 @@ def get_rhyme_for_completed_poems(period_by=50, filter_line_sim=True, rename_mod
     return df
 
 def generate_rhyme_prompt_text(*args, stash=STASH_GENAI_RHYME_PROMPTS, **kwargs):
+
+
     return generate_text(*args, stash=stash, **kwargs)
 
-def generate_more_poems_from_rhyme_prompts(n=3, models=MODEL_LIST, prompts=PROMPT_LIST, temperatures=None, verbose=True):
+def generate_more_poems_from_rhyme_prompts(n=3, models=MODEL_LIST, prompts=PROMPT_LIST, temperatures=[DEFAULT_TEMPERATURE], verbose=True):
+    """Generate additional poems using rhyme prompts with specified parameters.
+    
+    This function generates a specified number of poems by randomly selecting models,
+    prompts, and temperatures from the provided lists. It handles errors gracefully
+    by removing problematic models from the selection pool and provides progress
+    tracking through a tqdm progress bar.
+    
+    Args:
+        n (int): Number of poems to generate. Defaults to 3.
+        models (list): List of model identifiers to choose from. Defaults to MODEL_LIST.
+        prompts (list): List of prompt strings to choose from. Defaults to PROMPT_LIST.
+        temperatures (list, optional): List of temperature values to choose from.
+            If None, random temperatures between 0.0 and 1.0 are used.
+        verbose (bool): If True, prints generation progress and responses. Defaults to True.
+        
+    Returns:
+        None: Poems are generated and stored via the generate_rhyme_prompt_text function.
+        
+    Note:
+        The function will stop early if either the models or prompts list becomes empty
+        due to errors or other constraints.
+    """
     iterr = tqdm(total=n, position=0)
     bad_models = set()
     for n in range(n):
@@ -166,7 +190,7 @@ def get_stash_df_poems():
 
 
 def get_genai_rhyme_promptings_as_in_paper(*args, **kwargs):
-    printm('#### Collecting genai rhyme promptings used in paper')
+    print('* Collecting genai rhyme promptings used in paper')
     df1 = get_legacy_df_poems1()
     df2 = get_legacy_df_poems2()
     df_prompts = pd.concat([df1, df2])
@@ -175,7 +199,7 @@ def get_genai_rhyme_promptings_as_in_paper(*args, **kwargs):
     return postprocess_rhyme_promptings(df_prompts, *args, **kwargs)
 
 def get_genai_rhyme_promptings_as_replicated(*args, **kwargs):
-    printm('#### Collecting genai rhyme promptings used in paper')
+    print('* Collecting genai rhyme promptings used in paper')
     df_prompts = get_stash_df_poems()
 
     kwargs['save_latex_to_suffix'] = REPLICATED_SUFFIX
@@ -220,7 +244,7 @@ def postprocess_rhyme_promptings(
     df_prompts['temperature'] = pd.to_numeric(df_prompts.temperature, errors='coerce')
 
 
-    printm(f'##### Aggregated and filtered')
+    print(f'* Aggregated and filtered')
     df_prompts = df_prompts[df_prompts.prompt.isin(prompts)]
     df_prompts = df_prompts[df_prompts.model.isin(models)]
     

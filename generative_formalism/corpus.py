@@ -52,7 +52,6 @@ def get_chadwyck_corpus_metadata(
     if not os.path.exists(PATH_CHADWYCK_HEALEY_METADATA):
         return pd.DataFrame(columns=fields.keys()).set_index('id')
     
-    printm(f'#### Getting Chadwyck-Healey corpus metadata')
     print(f'* Loading metadata from {PATH_CHADWYCK_HEALEY_METADATA}')
     df = pd.read_csv(PATH_CHADWYCK_HEALEY_METADATA).fillna("")
     df['author_dob'] = pd.to_numeric(df['author_dob'], errors='coerce')
@@ -187,7 +186,7 @@ def get_chadwyck_corpus_texts(df_meta, clean_poem=True) -> list[str]:
         for id in tqdm(df_meta.reset_index().id, desc='  ')
     ]
 
-def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, **kwargs) -> pd.DataFrame:
+def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, download_if_necessary=True, **kwargs) -> pd.DataFrame:
     """Load metadata and poem texts into a single corpus DataFrame.
 
     Parameters
@@ -202,15 +201,25 @@ def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, **kwa
     - Caches the result in the module-level `CORPUS`.
     """
     global CORPUS
-    printm(f'#### Loading Chadwyck-Healey corpus (metadata + txt)')
+    print(f'* Loading Chadwyck-Healey corpus (metadata + txt)')
 
     if not force and CORPUS is not None:
         print('* Loading corpus from memory')
         return CORPUS
-    
+
     df_meta = get_chadwyck_corpus_metadata(*args, **kwargs) if df_meta is None else df_meta
+    if df_meta is None or not len(df_meta):
+        return pd.DataFrame()
+
+    if download_if_necessary and not os.path.exists(PATH_CHADWYCK_HEALEY_TXT):
+        download_chadwyck_corpus_txt()
+    
+    if not os.path.exists(PATH_CHADWYCK_HEALEY_TXT):
+        print(f'* Warning: No corpus text files to load')
+        return pd.DataFrame()
 
     df_meta['txt'] = get_chadwyck_corpus_texts(df_meta, clean_poem=clean_poem)
+
     CORPUS = df_meta
     return df_meta
 
@@ -238,7 +247,11 @@ def sample_chadwyck_corpus(
     - pd.DataFrame containing the sampled rows.
     """
 
-    printm(f'#### Sampling corpus by {sample_by} (min {min_sample_n}, max {max_sample_n})')
+    if not len(df_corpus):
+        print(f'* Warning: No corpus to sample')
+        return pd.DataFrame()
+
+    print(f'* Sampling corpus by {sample_by} (min {min_sample_n}, max {max_sample_n})')
     print(f'* Original sample size: {len(df_corpus)}')
     # sort by id hash
     df = df_corpus.sort_values('id_hash')
@@ -326,7 +339,8 @@ def get_chadwyck_corpus_sampled_by_rhyme(force=False) -> pd.DataFrame:
     if force or not os.path.exists(path):
         print(f'* Generating rhyme sample')
         odf = gen_chadwyck_corpus_sampled_by_rhyme()
-        save_sample(odf, path, overwrite=True)
+        if len(odf):
+            save_sample(odf, path, overwrite=True)
     else:
         print(f'* Loading rhyme sample from {path}')
         odf = pd.read_csv(path).set_index('id').sort_values('id_hash')
@@ -338,7 +352,8 @@ def get_chadwyck_corpus_sampled_by_period(force=False) -> pd.DataFrame:
     if force or not os.path.exists(path):
         print(f'* Generating period sample')
         odf = gen_chadwyck_corpus_sampled_by_period()
-        save_sample(odf, path, overwrite=True)
+        if len(odf):
+            save_sample(odf, path, overwrite=True)
     else:
         print(f'* Loading period sample from {path}')
         odf = pd.read_csv(path).set_index('id').sort_values('id_hash')
@@ -350,7 +365,8 @@ def get_chadwyck_corpus_sampled_by_period_subcorpus(force=False, display=False) 
     if force or not os.path.exists(path):
         print(f'* Generating period subcorpus sample')
         odf = gen_chadwyck_corpus_sampled_by_period_subcorpus()
-        save_sample(odf, path, overwrite=True)
+        if len(odf):
+            save_sample(odf, path, overwrite=True)
     else:
         print(f'* Loading period subcorpus sample from {path}')
         odf = pd.read_csv(path).set_index('id').sort_values('id_hash')
