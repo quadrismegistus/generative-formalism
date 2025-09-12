@@ -19,7 +19,7 @@ from tqdm import tqdm
 import plotnine as p9
 import nest_asyncio
 import prosodic
-from hashstash import stashed_result
+from hashstash import stashed_result, JSONLHashStash
 from hashstash.engines.jsonl import JSONLHashStash
 from rapidfuzz import fuzz
 pd.options.display.max_rows = 100
