@@ -201,10 +201,12 @@ def generate_text(model: str, prompt: str, temperature: float = DEFAULT_TEMPERAT
     if verbose:
         print(f'* Generating text')
         print(f'  * model: {model}')
-        print(f'  * prompt: {prompt.replace("\n", " ").strip()[:100]}')
+        prompt_preview = prompt.replace("\n", " ").strip()[:100]
+        print(f'  * prompt: {prompt_preview}')
         print(f'  * temperature: {temperature}')
         if system_prompt:
-            print(f'* system_prompt: {system_prompt.replace("\n", " ").strip()[:100]}')
+            system_preview = system_prompt.replace("\n", " ").strip()[:100]
+            print(f'  * system_prompt: {system_preview}')
         print(f'  * force: {force}')
         print(f'  * stash: {stash}')
     key = {

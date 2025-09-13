@@ -1,0 +1,121 @@
+# Book settings
+title: "Generative Formalism"
+subtitle: "On the formal stuckness of AI verse"
+author: "Ryan Heuser et al."
+copyright: "2025"
+logo: ""
+
+# Exclude patterns
+exclude_patterns:
+  - venv/**
+  - __pycache__/**
+  - .git/**
+  - "*.pyc"
+  - "*.pyo"
+  - "**/*.egg-info/**"
+  - build/**
+  - dist/**
+  - docs/_build/**
+  - .DS_Store
+  - .ipynb_checkpoints/**
+  - .pytest_cache/**
+  - .mypy_cache/**
+  - "*.log"
+  - "*.tmp"
+  - "*.backup"
+  - "*~"
+  - .env
+  - .vscode/**
+  - .idea/**
+  - requirements.txt
+  - README_jupyterbook.md
+  - generative_formalism.py
+
+# Notebook execution settings
+execute:
+  execute_notebooks: cache
+  timeout: 300
+  allow_errors: true
+  stderr_output: show
+  stdout_output: show
+
+# MyST-NB configuration for notebook rendering
+mystnb:
+  # Show outputs from executed cells
+  render_plugin: "default"
+  remove_code_source: false
+  remove_code_outputs: false
+  # Show stdout/stderr streams
+  merge_streams: false
+  output_stderr: "show"
+  # Number source lines
+  number_source_lines: false
+
+# Sphinx configuration for incremental builds
+sphinx:
+  config:
+    # Enable incremental builds
+    nitpicky: false
+    # Keep intermediate files for debugging
+    keep_going: true
+
+# Define the name of the latex output file for PDF builds
+latex:
+  latex_documents:
+    targetname: generative_formalism.tex
+
+# Add a bibtex file so that we can create citations
+bibtex_bibfiles:
+  - references.bib
+
+# Information about where the book exists on the web
+repository:
+  url: https://github.com/quadrismegistus/generative-formalism
+  path_to_book: ""
+  branch: asmodule
+
+# Add GitHub buttons to your book
+html:
+  use_repository_button: true
+  use_issues_button: true
+  use_edit_page_button: true
+  use_download_button: true
+  use_fullscreen_button: true
+  home_page_in_navbar: false
+  navbar_number_sections: false
+  announcement: "⚠️ This book is under development. Content may change frequently."
+  
+# Launch button configuration for interactive notebooks
+launch_buttons:
+  notebook_interface: jupyterlab
+  binderhub_url: https://mybinder.org
+  colab_url: https://colab.research.google.com
+
+# Parse and render settings
+parse:
+  myst_enable_extensions:
+    - colon_fence
+    - deflist
+    - dollarmath
+    - html_admonition
+    - html_image
+    - linkify
+    - replacements
+    - smartquotes
+    - substitution
+    - tasklist
+
+# Sphinx configuration
+sphinx:
+  config:
+    html_show_copyright: false
+    html_theme_options:
+      repository_url: https://github.com/quadrismegistus/generative-formalism
+      use_repository_button: true
+      use_edit_page_button: true
+      use_download_button: true
+      path_to_docs: ""
+      show_navbar_depth: 2
+    nb_execution_mode: "force"
+    nb_execution_timeout: 300
+    nb_execution_allow_errors: true

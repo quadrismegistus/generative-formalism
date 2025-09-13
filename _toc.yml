@@ -1,0 +1,28 @@
+# Table of contents for Generative Formalism notebooks
+format: jb-book
+root: README
+chapters:
+  - file: notebooks/1-Data-A-HistoricalCorpora
+    title: "Historical Corpora"
+  - file: notebooks/1-Data-B1-PromptingForRhyme
+    title: "Prompting for Rhyme (Basic)"
+  - file: notebooks/1-Data-B2-PromptingForRhymeAtScale
+    title: "Prompting for Rhyme at Scale"
+  - file: notebooks/1-Data-B3-CollectingRhymePromptingData
+    title: "Collecting Rhyme Prompting Data"
+  - file: notebooks/1-Data-C-PromptingForCompletions
+    title: "Prompting for Completions"
+  - file: notebooks/2-Methods-A-TestingRhymeMeasurement
+    title: "Testing Rhyme Measurement"
+  - file: notebooks/4-MeasuringRhymeInPromptedPoems
+    title: "Measuring Rhyme in Prompted Poems"
+  - file: notebooks/6-MeasuringRhymeInCompletedPoems
+    title: "Measuring Rhyme in Completed Poems"
+  - file: notebooks/7-TestingPoemMemorization
+    title: "Testing Poem Memorization"
+  - file: notebooks/8-PlottingPoemMemorization
+    title: "Plotting Poem Memorization"
+  - file: notebooks/9-TextVsInstructionModels
+    title: "Text vs Instruction Models"
+  - file: notebooks/10-Sonnets
+    title: "Sonnet Analysis"

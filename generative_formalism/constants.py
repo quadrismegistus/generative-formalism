@@ -308,3 +308,26 @@ NICE_PROMPT_TYPE = {
 DEFAULT_TEMPERATURE = 0.7
 
 DEFAULT_VERBOSE = True
+
+PATH_GENAI_RHYME_COMPLETIONS = f"{PATH_DATA}/corpus_genai_rhyme_completions.csv.gz"
+PATH_GENAI_RHYME_COMPLETIONS_LEGACY = (
+    f"{PATH_DATA}/corpus_genai_rhyme_completions.legacy.csv.gz"
+)
+COMPLETIONS_GROUPBY = ["id"]
+
+
+
+
+## Legacy
+GENAI_RHYME_COMPLETIONS_INDEX = [
+    "id_human",
+    "model",
+    "first_n_lines",
+    "version",
+    "date",
+    "id",
+    "stanza_num",
+    "line_num",
+]
+FIRST_N_LINES = 5
+PREPROCESSED_LEGACY_COMPLETION_DATA = None
