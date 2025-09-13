@@ -19,7 +19,7 @@ from tqdm import tqdm
 import plotnine as p9
 import nest_asyncio
 import prosodic
-from hashstash import stashed_result, JSONLHashStash
+from hashstash import stashed_result, JSONLHashStash, HashStash
 from hashstash.engines.jsonl import JSONLHashStash
 from rapidfuzz import fuzz
 pd.options.display.max_rows = 100
@@ -50,11 +50,5 @@ from .constants import *  # noqa: E402,F401,F403
 
 # Load rest of modules (each module begins with `from . import *` to reuse imports)
 from .utils import *  # noqa: E402,F401,F403
-from .llms import *   # noqa: E402,F401,F403
-from .prosody import *  # noqa: E402,F401,F403
 from .corpus import *  # noqa: E402,F401,F403
-from .stats import *  # noqa: E402,F401,F403
-from .rhyme_promptings import *  # noqa: E402,F401,F403
-from .rhyme_completions import *  # noqa: E402,F401,F403
-
-
+from .rhyme import *  # noqa: E402,F401,F403
