@@ -2,7 +2,7 @@ from . import *
 
 
 def preprocess_legacy_genai_rhyme_completions(
-    path=PATH_GENAI_RHYME_COMPLETIONS, overwrite=False, first_n_lines=FIRST_N_LINES
+    path=PATH_GENAI_RHYME_COMPLETIONS, overwrite=False, first_n_lines=FIRST_N_LINES,verbose=DEFAULT_VERBOSE
 ):
     """Preprocess legacy generative AI rhyme completions from raw pickle files.
 
@@ -34,7 +34,7 @@ def preprocess_legacy_genai_rhyme_completions(
         return PREPROCESSED_LEGACY_COMPLETION_DATA
 
     if not overwrite and os.path.exists(PATH_GENAI_RHYME_COMPLETIONS):
-        print(
+        if verbose: print(
             f"* Loading legacy genai rhyme completions from {nice_path(PATH_GENAI_RHYME_COMPLETIONS)}"
         )
         odf = (
@@ -43,7 +43,7 @@ def preprocess_legacy_genai_rhyme_completions(
             .set_index(GENAI_RHYME_COMPLETIONS_INDEX)
         )
     else:
-        print(f"* Preprocessing legacy genai rhyme completions")
+        if verbose: print(f"* Preprocessing legacy genai rhyme completions")
         index = "_id	_first_n_lines	_model	_say_poem	_version	_timestamp".split()
         df3 = (
             pd.read_pickle(f"{PATH_RAWDATA}/data.output.gen_poems.v3.pkl")
@@ -107,28 +107,30 @@ def preprocess_legacy_genai_rhyme_completions(
 
         odf = odf.set_index(GENAI_RHYME_COMPLETIONS_INDEX)
 
-        print(
+
+        if verbose: print(
             f"* Saving legacy genai rhyme completions to {nice_path(PATH_GENAI_RHYME_COMPLETIONS)}"
         )
         odf.to_csv(PATH_GENAI_RHYME_COMPLETIONS)
 
     PREPROCESSED_LEGACY_COMPLETION_DATA = odf
 
-    human_ids = odf.reset_index().id_human.unique()
-    print(f"* Found {len(human_ids)} unique human poems for input to models")
-    gen_ids = odf.reset_index().id.unique()
-    print(f"* Found {len(gen_ids)} unique generated poems")
+    # if verbose:
+        # human_ids = odf.reset_index().id_human.unique()
+        # print(f"* Found {len(human_ids)} unique human poems for input to models")
+        # gen_ids = odf.reset_index().id.unique()
+        # print(f"* Found {len(gen_ids)} unique generated poems")
 
-    print("* Distribution of input poem lengths")
-    describe_numeric(
-        pd.Series([len(gdf) for g, gdf in odf.groupby("id_human")], name="num_lines")
-    )
+        # print("* Distribution of input poem lengths")
+        # describe_numeric(
+        #     pd.Series([len(gdf) for g, gdf in odf.groupby("id_human")], name="num_lines")
+        # )
 
-    print("* Distribution of output poem lengths")
-    describe_numeric(
-        pd.Series([len(gdf) for g, gdf in odf.groupby("id")], name="num_lines"),
-        fixed_range=(MIN_NUM_LINES, MAX_NUM_LINES),
-    )
+        # print("* Distribution of output poem lengths")
+        # describe_numeric(
+        #     pd.Series([len(gdf) for g, gdf in odf.groupby("id")], name="num_lines"),
+        #     fixed_range=(MIN_NUM_LINES, MAX_NUM_LINES),
+        # )
 
     return odf
 
@@ -385,6 +387,8 @@ def to_poem_txt_format(df, keep_first_n_lines=True, verbose=DEFAULT_VERBOSE, fil
             "first_n_lines": first_n_lines,
             "keep_first_n_lines": keep_first_n_lines,
         }
+        if 'line_sim' in gdf:
+            row_out['line_sim'] = gdf.line_sim.max()
         # Propagate known meta columns if present
         for meta_col in ["temperature", "prompt", "system_prompt", "date"]:
             if meta_col in gdf:

@@ -7,7 +7,7 @@ This module provides:
 - Generation of period×subcorpus summary tables and LaTeX output
 """
 from . import *
-from generative_formalism.rhyme.rhyme_measurement import get_rhyme_data_for
+from generative_formalism.rhyme.rhyme_measurements import get_rhyme_data_for
 
 CORPUS_METADATA = None
 CORPUS = None

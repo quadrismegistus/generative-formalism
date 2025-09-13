@@ -247,22 +247,27 @@ def describe_numeric_ascii_boxplot(s, max_width=60, as_int=True, fixed_range=Non
     print(f'  {fmt(range_min)} {plot} {fmt(range_max)}')
 
 
-def describe_qual(s,sort_index=False, count=True):
+def describe_qual(s,sort_index=False, count=True, name=None):
+    if not name: 
+        name=getattr(s, 'name', 'series')
     if count:
         s = s.value_counts()
     if sort_index:
         s = s.sort_index()
     x=repr(s)
     x='\n'.join(x.split('\n')[1:-1])
-    print('* Breakdown for', getattr(s, 'name', 'series'))
+    print('* Breakdown for', name)
     print(x)
     print()
 
-def describe_qual_grouped(s, groupby, sort_index=False, count=True):
+def describe_qual_grouped(s, groupby, sort_index=False, count=True, name=None):
+    if not name:
+        name=getattr(s, 'name', 'series')
     odf = s.groupby(groupby).size().reset_index().rename(columns={0: 'count'})
     odf.set_index(groupby, inplace=True)
     if sort_index:
         odf.sort_index(inplace=True)
+    print('* Breakdown for', name)
     print(odf)
     print()
 
@@ -592,3 +597,9 @@ def documentation(func, docstring=True, signature=False, source=False):
         display(Markdown(markdown_content))
     except:
         pass
+
+
+def head(df, n=5, verbose=True):
+    if verbose:
+        printm(f'*Dataframe with {df.shape[0]:,} rows and  {df.shape[1]:,} columns*')
+    return df.head(n)
