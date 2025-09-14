@@ -21,7 +21,7 @@ def permutation_test(x, y, n_permutations=10000):
     return p_value
 
 
-def compute_stat_signif(df, groupby='model', valname='rhyme_pred_perc',verbose=False,min_group_size=100,group_name='group'):
+def compute_stat_signif(df, groupby='model', valname='rhyme_pred_perc',verbose=DEFAULT_VERBOSE,min_group_size=10,group_name='group'):
     if isinstance(groupby, str):
         groupby = [groupby]
     
@@ -49,6 +49,11 @@ def compute_stat_signif(df, groupby='model', valname='rhyme_pred_perc',verbose=F
                 return 'medium'
             return 'large'
 
+        groups_d = {
+            **dict(zip(groupby, var1.split('|'))),
+            **dict(zip(groupby, var2.split('|'))),
+        }
+
         results.append({
             'comparison': f"{var1} vs {var2}",
             "n1": len(group1),
@@ -59,17 +64,17 @@ def compute_stat_signif(df, groupby='model', valname='rhyme_pred_perc',verbose=F
             'mean1': group1.mean(),
             'mean2': group2.mean(),
             'significant': p < 0.05,
+            **groups_d
         })
     results_df = pd.DataFrame(results)
     return results_df.sort_values('effect_size', ascending=False) if len(results_df) > 0 else pd.DataFrame()
 
-
-def compute_all_stat_signif(df, groupby='period', varname='model', valname='rhyme_pred_perc'):
+def compute_all_stat_signif(df, groupby='period', groupby_stat='model', valname='rhyme_pred_perc',verbose=DEFAULT_VERBOSE):
     o = []
     for g, gdf in df.groupby(groupby):
-        ogdf = compute_stat_signif(gdf, varname, valname).assign(groupby=g)
+        ogdf = compute_stat_signif(gdf, groupby_stat, valname, verbose=verbose).assign(groupby=g)
         o.append(ogdf)
-    return pd.concat(o).sort_values(['groupby', 'effect_size'], ascending=False).set_index(['groupby', 'comparison']) if len(o) > 0 else pd.DataFrame()
+    return pd.concat(o)#.sort_values(['groupby', 'effect_size'], ascending=False).set_index(['groupby', 'comparison']) if len(o) > 0 else pd.DataFrame()
 
 
 def get_avgs_df(df, gby=['period', 'source', 'prompt_type'], y='rhyme_pred_perc'):
@@ -109,7 +114,7 @@ def compare_data_by_group(
     groupby=[], 
     valname='', 
     min_group_size=100,
-    verbose=False,
+    verbose=DEFAULT_VERBOSE,
 ):
     if not groupby or not valname:
         print(f'* Warning: no groupby or valname provided')

@@ -320,7 +320,9 @@ CORPUS_PERIOD_BY = 50
 TABLE_NUM_PERIOD_SUBCORPUS_COUNTS = 5
 TABLE_NUM_RHYME_PROMPTINGS = 2
 
-PATH_TEX_PERIOD_SUBCORPUS_COUNTS = os.path.join(PATH_TEX, f'table_{TABLE_NUM_PERIOD_SUBCORPUS_COUNTS}.period_subcorpus_counts.tex')
+PATH_TEX_PERIOD_SUBCORPUS_COUNTS = os.path.join(PATH_TEX, f'table.period_subcorpus_counts.tex')
+PATH_TEX_PERIOD_COUNTS = os.path.join(PATH_TEX, f'table.period_counts.tex')
+PATH_TEX_SONNET_PERIOD_COUNTS = os.path.join(PATH_TEX, f'table.sonnet_period_counts.tex')
 
 PAPER_REGENERATED_SUFFIX = 'paper_regenerated'
 
@@ -380,7 +382,41 @@ PATH_RHYME_DATA_FOR_GENAI_COMPLETIONS_REPLICATED_SAMPLE = PATH_GENAI_COMPLETIONS
 PATH_ANTONIAK_ET_AL_DIR = PATH_RAWDATA + "/antoniak-et-al"
 PATH_ANTONIAK_ET_AL_CSV = PATH_DATA + "/data.antoniak_et_al_memorization_results.csv.gz"
 
-PATH_DOLMA_CSV = PATH_DATA + "/data.found_dolma.csv.gz"
+PATH_DOLMA_CSV = PATH_DATA + "/data.memorized_poems_in_dolma.csv.gz"
 PATH_ALL_MEMORIZATION_DATA = PATH_DATA + "/data.all_memorization_data.csv.gz"
 
 PATH_CHADWYCK_MEMORIZATION_DATA = PATH_DATA + "/data.chadwyck_memorization_data.csv.gz"
+
+
+DATA_NAME_GENAI_RHYME_COMPLETIONS = "genai_rhyme_completions"
+DATA_NAME_GENAI_RHYME_PROMPTINGS = "genai_rhyme_promptings"
+DATA_NAME_ALL_MEMORIZATION_DATA = "genai_poem_memorizations"
+DATA_NAME_CORPUS_SAMPLE_BY_PERIOD = "corpus_sample_by_period"
+DATA_NAME_CORPUS_SAMPLE_BY_PERIOD_SUBCORPUS = "corpus_sample_by_period_subcorpus"
+DATA_NAME_CORPUS_SAMPLE_BY_RHYME = "corpus_sample_by_rhyme"
+DATA_NAME_CORPUS_SAMPLE_BY_SONNET_PERIOD = "corpus_sample_by_sonnet_period"
+
+
+def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False):
+    def has_ext(path):
+        return bool(os.path.splitext(path)[1])
+    
+    if not has_ext(data_name):
+        data_name = data_name + ext
+    
+    if as_in_paper and as_replicated:
+        data_fldr = "data_as_replicated/using_sample_as_in_paper"
+    elif as_replicated:
+        data_fldr = "data_replicated/using_sample_as_replicated"
+    elif as_in_paper:
+        data_fldr = "data_as_in_paper"
+    else:
+        data_fldr = "tmp"
+    
+    return os.path.join(
+        PATH_DATA,
+        data_fldr,
+        data_name
+    )
+
+

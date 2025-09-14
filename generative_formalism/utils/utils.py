@@ -276,7 +276,7 @@ def describe_qual_grouped(s, groupby, sort_index=False, count=True, name=None):
 
 
 # Attempt to render LaTeX -> PNG using local TeX toolchain; fallback to matplotlib image
-def render_latex_to_png(tex_body, out_png_path, verbose=False):
+def render_latex_to_png(tex_body, out_png_path, verbose=DEFAULT_VERBOSE):
     import tempfile
     import subprocess
     import shutil

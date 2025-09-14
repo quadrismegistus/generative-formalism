@@ -197,7 +197,7 @@ def generate_more_poems_from_rhyme_prompts(
 ## Collection of previous genai promptings
 
 
-def get_legacy_df_poems1(path_pkl=PATH_RAW_PKL, verbose=False):
+def get_legacy_df_poems1(path_pkl=PATH_RAW_PKL, verbose=DEFAULT_VERBOSE):
     if verbose:
         print(f"  * Collecting from {path_pkl}")
     if path_pkl and os.path.exists(path_pkl):
@@ -214,7 +214,7 @@ def get_legacy_df_poems1(path_pkl=PATH_RAW_PKL, verbose=False):
     return df_poems1
 
 
-def get_legacy_df_poems2(path_json=PATH_RAW_JSON, verbose=False):
+def get_legacy_df_poems2(path_json=PATH_RAW_JSON, verbose=DEFAULT_VERBOSE):
     if path_json and os.path.exists(path_json):
         if verbose:
             print(f"  * Collecting from {path_json}")
@@ -243,7 +243,7 @@ def get_legacy_df_poems2(path_json=PATH_RAW_JSON, verbose=False):
         return pd.DataFrame()
 
 
-def get_stash_df_poems(verbose=False):
+def get_stash_df_poems(verbose=DEFAULT_VERBOSE):
     if verbose:
         print(f"  * Collecting from {STASH_GENAI_RHYME_PROMPTS.path}")
     odf = STASH_GENAI_RHYME_PROMPTS.df.rename(columns={"_value": "response"})
@@ -252,7 +252,7 @@ def get_stash_df_poems(verbose=False):
     return odf
 
 
-def preprocess_rhyme_promptings(overwrite=False, save_to=PATH_GENAI_PROMPTS_IN_PAPER, verbose=False, **kwargs):
+def preprocess_rhyme_promptings(overwrite=False, save_to=PATH_GENAI_PROMPTS_IN_PAPER, verbose=DEFAULT_VERBOSE, **kwargs):
     """Preprocess rhyme promptings data.
 
     This function preprocesses rhyme promptings data from legacy pickle and JSON files,
@@ -283,7 +283,7 @@ def preprocess_rhyme_promptings(overwrite=False, save_to=PATH_GENAI_PROMPTS_IN_P
 
 
 def get_genai_rhyme_promptings_as_in_paper(
-    *args, overwrite=False, save_to=PATH_GENAI_PROMPTS_IN_PAPER, verbose=False, **kwargs
+    *args, overwrite=False, save_to=PATH_GENAI_PROMPTS_IN_PAPER, verbose=DEFAULT_VERBOSE, **kwargs
 ):
     """
     Convenience function calling `preprocess_rhyme_promptings` and `postprocess_rhyme_promptings`.
@@ -309,7 +309,7 @@ def get_genai_rhyme_promptings_as_in_paper(
     return postprocess_rhyme_promptings(df_prompts, *args, verbose=verbose, **kwargs)
 
 
-def get_genai_rhyme_promptings_as_replicated(*args, verbose=False, **kwargs):
+def get_genai_rhyme_promptings_as_replicated(*args, verbose=DEFAULT_VERBOSE, **kwargs):
     """
     Get genai rhyme promptings as replicated in this implementation.
     

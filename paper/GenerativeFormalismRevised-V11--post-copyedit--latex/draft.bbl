@@ -1,0 +1,1047 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global/global}
+    \entry{allisonQuantitativeFormatualismExperiment2011}{journal}{}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=b110addc2aaf86360fa3f4618890e9c4}{%
+           family={Allison},
+           familyi={A\bibinitperiod},
+           given={Sarah},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=020a24691cda1caf673f826a856cca5a}{%
+           family={Heuser},
+           familyi={H\bibinitperiod},
+           given={Ryan},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ee3eedecd10efe63e2458cc439781408}{%
+           family={Jockers},
+           familyi={J\bibinitperiod},
+           given={Matthew},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=60e0776eab9ad2bb3da78fa156996838}{%
+           family={Moretti},
+           familyi={M\bibinitperiod},
+           given={Franco},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=afb6936fcb212344240efa56b0a05bee}{%
+           family={Witmore},
+           familyi={W\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{cbb8d333e513136fe863b44d9e3985c1}
+      \strng{fullhash}{9143d426640cf71d7b51058b3e7e9284}
+      \strng{fullhashraw}{9143d426640cf71d7b51058b3e7e9284}
+      \strng{bibnamehash}{cbb8d333e513136fe863b44d9e3985c1}
+      \strng{authorbibnamehash}{cbb8d333e513136fe863b44d9e3985c1}
+      \strng{authornamehash}{cbb8d333e513136fe863b44d9e3985c1}
+      \strng{authorfullhash}{9143d426640cf71d7b51058b3e7e9284}
+      \strng{authorfullhashraw}{9143d426640cf71d7b51058b3e7e9284}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Stanford Literary Lab Pamphlets}
+      \field{month}{1}
+      \field{number}{1}
+      \field{title}{Quantitative Formalism: An Experiment}
+      \field{urlday}{15}
+      \field{urlmonth}{1}
+      \field{urlyear}{2025}
+      \field{year}{2011}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb litlab.stanford.edu/LiteraryLabPamphlet1.pdf
+      \endverb
+      \verb{url}
+      \verb litlab.stanford.edu/LiteraryLabPamphlet1.pdf
+      \endverb
+    \endentry
+    \entry{anttilaPhonologicalMetricalVariation2015a}{article}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=a57d7aa7f0219bed8e900ad627aeaaeb}{%
+           family={Anttila},
+           familyi={A\bibinitperiod},
+           given={Arto},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=020a24691cda1caf673f826a856cca5a}{%
+           family={Heuser},
+           familyi={H\bibinitperiod},
+           given={Ryan},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{02741d76cfaef5150d87e68a3ecddc21}
+      \strng{fullhash}{02741d76cfaef5150d87e68a3ecddc21}
+      \strng{fullhashraw}{02741d76cfaef5150d87e68a3ecddc21}
+      \strng{bibnamehash}{02741d76cfaef5150d87e68a3ecddc21}
+      \strng{authorbibnamehash}{02741d76cfaef5150d87e68a3ecddc21}
+      \strng{authornamehash}{02741d76cfaef5150d87e68a3ecddc21}
+      \strng{authorfullhash}{02741d76cfaef5150d87e68a3ecddc21}
+      \strng{authorfullhashraw}{02741d76cfaef5150d87e68a3ecddc21}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{In this study, we asked whether standard phonological and metrical constraints proposed by phonologists and metricists are useful in identifying arbitrary lines of text as metered verse vs. unmetered prose, focusing on five English-language and five Finnish-language authors. To analyze the dataset we used Prosodic (Heuser, Falk, and Anttila 2010), a software package that provides a phonological analysis and a metrical scansion for raw text. We discovered that phonologically prose and verse differ in the same way in both languages, suggesting that the phonology of genre is universal, whereas metrically the two languages turned out to differ in the expected ways.}
+      \field{issn}{2377-3324}
+      \field{journaltitle}{Proceedings of the Annual Meetings on Phonology}
+      \field{langid}{english}
+      \field{title}{Phonological and {{Metrical Variation}} across {{Genres}}}
+      \field{urlday}{4}
+      \field{urlmonth}{11}
+      \field{urlyear}{2024}
+      \field{year}{2015}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /Users/ryan/Zotero/storage/8VDEIXDB/Anttila and Heuser - 2015 - Phonological and Metrical Variation across Genres.pdf
+      \endverb
+      \keyw{automatic scansion,English,Finnish,metrics,Optimality Theory,prosody}
+    \endentry
+    \entry{bassettComputationalTherapeutic2019}{article}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=1fa5b06dd8c8cf409a2aa75b0a484acb}{%
+           family={Bassett},
+           familyi={B\bibinitperiod},
+           given={Caroline},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{1fa5b06dd8c8cf409a2aa75b0a484acb}
+      \strng{fullhash}{1fa5b06dd8c8cf409a2aa75b0a484acb}
+      \strng{fullhashraw}{1fa5b06dd8c8cf409a2aa75b0a484acb}
+      \strng{bibnamehash}{1fa5b06dd8c8cf409a2aa75b0a484acb}
+      \strng{authorbibnamehash}{1fa5b06dd8c8cf409a2aa75b0a484acb}
+      \strng{authornamehash}{1fa5b06dd8c8cf409a2aa75b0a484acb}
+      \strng{authorfullhash}{1fa5b06dd8c8cf409a2aa75b0a484acb}
+      \strng{authorfullhashraw}{1fa5b06dd8c8cf409a2aa75b0a484acb}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{AI \& Society}
+      \field{langid}{english}
+      \field{number}{4}
+      \field{title}{The Computational Therapeutic: Exploring Weizenbaum's ELIZA as a History of the Present}
+      \field{volume}{34}
+      \field{year}{2019}
+      \field{dateera}{ce}
+      \field{pages}{803\bibrangedash 812}
+      \range{pages}{10}
+    \endentry
+    \entry{benderDangersStochasticParrots2021a}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=e579c650beb31c286389278140fadd63}{%
+           family={Bender},
+           familyi={B\bibinitperiod},
+           given={Emily\bibnamedelima M},
+           giveni={E\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=f2b0ffb56c5d1e4220c16c0258e02eae}{%
+           family={Gebru},
+           familyi={G\bibinitperiod},
+           given={Timnit},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=698aa56654e49949b5a9ea038d23587e}{%
+           family={{McMillan-Major}},
+           familyi={M\bibinitperiod},
+           given={Angelina},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c3721cea1e5538fe0b83526d8333dbab}{%
+           family={Shmitchell},
+           familyi={S\bibinitperiod},
+           given={Shmargaret},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{c73d9460425aeddbb561b189551a3a98}
+      \strng{fullhash}{c4b1a296df1a50ba514ab947970f1784}
+      \strng{fullhashraw}{c4b1a296df1a50ba514ab947970f1784}
+      \strng{bibnamehash}{c73d9460425aeddbb561b189551a3a98}
+      \strng{authorbibnamehash}{c73d9460425aeddbb561b189551a3a98}
+      \strng{authornamehash}{c73d9460425aeddbb561b189551a3a98}
+      \strng{authorfullhash}{c4b1a296df1a50ba514ab947970f1784}
+      \strng{authorfullhashraw}{c4b1a296df1a50ba514ab947970f1784}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 2021 {{ACM Conference}} on {{Fairness}}, {{Accountability}}, and {{Transparency}}}
+      \field{langid}{english}
+      \field{month}{3}
+      \field{title}{On the Dangers of Stochastic Parrots: {{Can}} Language Models Be Too Big?}
+      \field{year}{2021}
+    \endentry
+    \entry{dsouzaChatbotCanonPoetry2023}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=ccbf7bdbb85055357538db93f08b3e09}{%
+           family={D’Souza},
+           familyi={D\bibinitperiod},
+           given={Lyra},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d0b37f86f34b5267e38b3e2defce4051}{%
+           family={Mimno},
+           familyi={M\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Paris, France}%
+      }
+      \strng{namehash}{705cc18474d8530cda908e2f918cbeea}
+      \strng{fullhash}{705cc18474d8530cda908e2f918cbeea}
+      \strng{fullhashraw}{705cc18474d8530cda908e2f918cbeea}
+      \strng{bibnamehash}{705cc18474d8530cda908e2f918cbeea}
+      \strng{authorbibnamehash}{705cc18474d8530cda908e2f918cbeea}
+      \strng{authornamehash}{705cc18474d8530cda908e2f918cbeea}
+      \strng{authorfullhash}{705cc18474d8530cda908e2f918cbeea}
+      \strng{authorfullhashraw}{705cc18474d8530cda908e2f918cbeea}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Large language models are able to memorize and generate long passages of text from their pretraining data. Poetry is commonly available on the web and o昀琀en 昀椀ts within language model context sizes. As LLMs continue to grow as a tool in literary analysis, the accessibility of poems will determine the e昀昀ective canon. We assess whether we can prompt current language models to retrieve existing poems, and what methods lead to the most successful retrieval. For the highest performing model, ChatGPT, we then evaluate which features of poets best predict memorization, as well as document changes over time in ChatGPT’s ability and willingness to retrieve poetry.}
+      \field{day}{6}
+      \field{endday}{8}
+      \field{endmonth}{12}
+      \field{endyear}{2023}
+      \field{eventtitle}{{{CHR}} 2023: {{Computational Humanities Research Conference}}}
+      \field{langid}{english}
+      \field{month}{12}
+      \field{title}{The {{Chatbot}} and the {{Canon}}: {{Poetry Memorization}} in {{LLMs}}}
+      \field{year}{2023}
+      \field{enddateera}{ce}
+      \field{dateera}{ce}
+      \verb{file}
+      \verb /Users/ryan/Zotero/storage/BW33T85K/D’Souza and Mimno - The Chatbot and the Canon Poetry Memorization in LLMs.pdf
+      \endverb
+    \endentry
+    \entry{emreParaliteraryMakingBad2017a}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=59e806acb573e01d9e38bac933b63c46}{%
+           family={Emre},
+           familyi={E\bibinitperiod},
+           given={Merve},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {U of Chicago P}%
+      }
+      \strng{namehash}{59e806acb573e01d9e38bac933b63c46}
+      \strng{fullhash}{59e806acb573e01d9e38bac933b63c46}
+      \strng{fullhashraw}{59e806acb573e01d9e38bac933b63c46}
+      \strng{bibnamehash}{59e806acb573e01d9e38bac933b63c46}
+      \strng{authorbibnamehash}{59e806acb573e01d9e38bac933b63c46}
+      \strng{authornamehash}{59e806acb573e01d9e38bac933b63c46}
+      \strng{authorfullhash}{59e806acb573e01d9e38bac933b63c46}
+      \strng{authorfullhashraw}{59e806acb573e01d9e38bac933b63c46}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{“[Emre’s] intellectual moves . . . are many, subtle, and a pleasure to follow. . . . None of her bad readers could have written this very good book.” —Los Angeles Review of BooksLiterature departments tend to be focused on turning out, “good” readers—attentive to nuance, aware of history, interested in literary texts as self-contained works. But the majority of readers are, to use Merve Emre’s tongue-in-cheek term, “bad” readers. They read fiction and poetry to be moved, distracted, instructed, improved, engaged as citizens. How should we think about those readers, and what should we make of the structures, well outside the academy, that generate them?We should, Emre argues, think of such readers not as non-literary but as paraliterary—thriving outside literary institutions. She traces this phenomenon to the postwar period, when literature played a key role in the rise of American power. At the same time as American universities were producing good readers by the hundreds, many more thousands of bad readers were learning elsewhere to be disciplined public communicators, whether in diplomatic and ambassadorial missions, private and public cultural exchange programs, multinational corporations, or global activist groups. As we grapple with literature’s diminished role in the public sphere, Paraliterary suggests a new way to think about literature, its audience, and its potential, one that looks at the civic institutions that have long engaged readers ignored by the academy.“Paraliterary does for . . . reading . . . what The Program Era did for writing: profoundly upend what we thought we knew about how institutions other than the university have shaped our culture and our engagement with it.” —Deborah Nelson, University of Chicago}
+      \field{langid}{english}
+      \field{pagetotal}{295}
+      \field{shorttitle}{Paraliterary}
+      \field{title}{Paraliterary: {{The Making}} of {{Bad Readers}} in {{Postwar America}}}
+      \field{year}{2017}
+      \field{dateera}{ce}
+      \keyw{History / United States / 20th Century,Literary Criticism / American / General,Literary Criticism / Books & Reading,Literary Criticism / Modern / 20th Century}
+    \endentry
+    \entry{hansonParametricTheoryPoetic1996}{article}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=64ac3093530d30885794fd37249286e1}{%
+           family={Hanson},
+           familyi={H\bibinitperiod},
+           given={Kristin},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b10931f56dcfc56511c4f4be51076ce5}{%
+           family={Kiparsky},
+           familyi={K\bibinitperiod},
+           given={Paul},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{b7db832105c81d6e8c50e37b2f8ae50d}
+      \strng{fullhash}{b7db832105c81d6e8c50e37b2f8ae50d}
+      \strng{fullhashraw}{b7db832105c81d6e8c50e37b2f8ae50d}
+      \strng{bibnamehash}{b7db832105c81d6e8c50e37b2f8ae50d}
+      \strng{authorbibnamehash}{b7db832105c81d6e8c50e37b2f8ae50d}
+      \strng{authornamehash}{b7db832105c81d6e8c50e37b2f8ae50d}
+      \strng{authorfullhash}{b7db832105c81d6e8c50e37b2f8ae50d}
+      \strng{authorfullhashraw}{b7db832105c81d6e8c50e37b2f8ae50d}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Each copy of any part of a JSTOR transmission must contain the same copyright notice that appears on the screen or printed page of such transmission. The JSTOR Archive is a trusted digital repository providing for long-term preservation and access to leading academic journals and scholarly literature from around the world. The Archive is supported by libraries, scholarly societies, publishers, and foundations. It is an initiative of JSTOR, a not-for-profit organization with a mission to help the scholarly community take advantage of advances in technology. For more information regarding JSTOR, please contact support@jstor.org.}
+      \field{journaltitle}{Language}
+      \field{title}{A {{Parametric Theory}} of {{Poetic Meter}}}
+      \field{volume}{72}
+      \field{year}{1996}
+      \field{pages}{287\bibrangedash 335}
+      \range{pages}{49}
+    \endentry
+    \entry{heuserProsodic}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=020a24691cda1caf673f826a856cca5a}{%
+           family={Heuser},
+           familyi={H\bibinitperiod},
+           given={Ryan},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{organization}{1}{%
+        {Github}%
+      }
+      \strng{namehash}{020a24691cda1caf673f826a856cca5a}
+      \strng{fullhash}{020a24691cda1caf673f826a856cca5a}
+      \strng{fullhashraw}{020a24691cda1caf673f826a856cca5a}
+      \strng{bibnamehash}{020a24691cda1caf673f826a856cca5a}
+      \strng{authorbibnamehash}{020a24691cda1caf673f826a856cca5a}
+      \strng{authornamehash}{020a24691cda1caf673f826a856cca5a}
+      \strng{authorfullhash}{020a24691cda1caf673f826a856cca5a}
+      \strng{authorfullhashraw}{020a24691cda1caf673f826a856cca5a}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Prosodic}
+      \field{urlday}{29}
+      \field{urlmonth}{9}
+      \field{urlyear}{2024}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /Users/ryan/Zotero/storage/77B9AAIX/prosodic.html
+      \endverb
+      \verb{urlraw}
+      \verb github.com/quadrismegistus/prosodic
+      \endverb
+      \verb{url}
+      \verb github.com/quadrismegistus/prosodic
+      \endverb
+    \endentry
+    \entry{heuserHistoricalProsodyMechanical2024}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=020a24691cda1caf673f826a856cca5a}{%
+           family={Heuser},
+           familyi={H\bibinitperiod},
+           given={Ryan},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=65d8b832964ee41eac5a1107a58852de}{%
+           family={Martin},
+           familyi={M\bibinitperiod},
+           given={Meredith},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Montreal}%
+      }
+      \strng{namehash}{87b6c16ad6f80de26edcc1fa5d819b88}
+      \strng{fullhash}{87b6c16ad6f80de26edcc1fa5d819b88}
+      \strng{fullhashraw}{87b6c16ad6f80de26edcc1fa5d819b88}
+      \strng{bibnamehash}{87b6c16ad6f80de26edcc1fa5d819b88}
+      \strng{authorbibnamehash}{87b6c16ad6f80de26edcc1fa5d819b88}
+      \strng{authornamehash}{87b6c16ad6f80de26edcc1fa5d819b88}
+      \strng{authorfullhash}{87b6c16ad6f80de26edcc1fa5d819b88}
+      \strng{authorfullhashraw}{87b6c16ad6f80de26edcc1fa5d819b88}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{eventtitle}{ACLA}
+      \field{langid}{english}
+      \field{title}{Historical Prosody and Mechanical Form}
+      \field{year}{2024}
+      \field{dateera}{ce}
+    \endentry
+    \entry{jamesonPoliticalUnconsciousNarrative2002}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=39958d4e27a8b3d124ce786a18c08675}{%
+           family={Jameson},
+           familyi={J\bibinitperiod},
+           given={Fredric},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Psychology P}%
+      }
+      \strng{namehash}{39958d4e27a8b3d124ce786a18c08675}
+      \strng{fullhash}{39958d4e27a8b3d124ce786a18c08675}
+      \strng{fullhashraw}{39958d4e27a8b3d124ce786a18c08675}
+      \strng{bibnamehash}{39958d4e27a8b3d124ce786a18c08675}
+      \strng{authorbibnamehash}{39958d4e27a8b3d124ce786a18c08675}
+      \strng{authornamehash}{39958d4e27a8b3d124ce786a18c08675}
+      \strng{authorfullhash}{39958d4e27a8b3d124ce786a18c08675}
+      \strng{authorfullhashraw}{39958d4e27a8b3d124ce786a18c08675}
+      \field{sortinit}{J}
+      \field{sortinithash}{b2f54a9081ace9966a7cb9413811edb4}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{In this ground-breaking and influential study Frederic Jameson explores the complex place and function of literature within culture.}
+      \field{langid}{english}
+      \field{pagetotal}{322}
+      \field{shorttitle}{The {{Political Unconscious}}}
+      \field{title}{The {{Political Unconscious}}: {{Narrative}} as a {{Socially Symbolic Act}}}
+      \field{year}{2002}
+      \field{dateera}{ce}
+      \keyw{Language Arts & Disciplines / Rhetoric,Literary Criticism / General,Literary Criticism / Subjects & Themes / Politics,Philosophy / General}
+    \endentry
+    \entry{kirschenbaumAgainTheory2023}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=e386f85952556815346f287aafc14658}{%
+           family={Kirschenbaum},
+           familyi={K\bibinitperiod},
+           given={Matthew},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{e386f85952556815346f287aafc14658}
+      \strng{fullhash}{e386f85952556815346f287aafc14658}
+      \strng{fullhashraw}{e386f85952556815346f287aafc14658}
+      \strng{bibnamehash}{e386f85952556815346f287aafc14658}
+      \strng{authorbibnamehash}{e386f85952556815346f287aafc14658}
+      \strng{authornamehash}{e386f85952556815346f287aafc14658}
+      \strng{authorfullhash}{e386f85952556815346f287aafc14658}
+      \strng{authorfullhashraw}{e386f85952556815346f287aafc14658}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{26}
+      \field{journaltitle}{In the Moment (Critical Inquiry Blog)}
+      \field{langid}{english}
+      \field{month}{6}
+      \field{title}{Again Theory: A Forum on Language, Meaning, and Intent in the Time of Stochastic Parrots}
+      \field{urlday}{14}
+      \field{urlmonth}{8}
+      \field{urlyear}{2025}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb critinq.wordpress.com/2023/06/26/again-theory-a-forum-on-language-meaning-and-intent-in-the-time-of-stochastic-parrots/
+      \endverb
+      \verb{url}
+      \verb critinq.wordpress.com/2023/06/26/again-theory-a-forum-on-language-meaning-and-intent-in-the-time-of-stochastic-parrots/
+      \endverb
+    \endentry
+    \entry{morettiGraphsMapsTrees2005}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=60e0776eab9ad2bb3da78fa156996838}{%
+           family={Moretti},
+           familyi={M\bibinitperiod},
+           given={Franco},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Verso}%
+      }
+      \strng{namehash}{60e0776eab9ad2bb3da78fa156996838}
+      \strng{fullhash}{60e0776eab9ad2bb3da78fa156996838}
+      \strng{fullhashraw}{60e0776eab9ad2bb3da78fa156996838}
+      \strng{bibnamehash}{60e0776eab9ad2bb3da78fa156996838}
+      \strng{authorbibnamehash}{60e0776eab9ad2bb3da78fa156996838}
+      \strng{authornamehash}{60e0776eab9ad2bb3da78fa156996838}
+      \strng{authorfullhash}{60e0776eab9ad2bb3da78fa156996838}
+      \strng{authorfullhashraw}{60e0776eab9ad2bb3da78fa156996838}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Stanford Professor Franco Moretti argues heretically that literature scholars should stop reading books and start counting, graphing and mapping them instead. He insists that such a move could bring new luster to a tired field, one that in some respects, he says, is among the most backwards disciplines in the academy. Literary study, he argues, has been random and unsystematic. For any given periods scholars focus on a select group of a mere few hundred texts: the canon. As a result, they have allowed a narrow distorting slice of history to pass for the total picture. Professor Moretti offers bar charts, maps and time lines instead. His is a history of literature as data points. Charting not only the 18th-century British novel but entire genres - the epistolary, the gothic and the historical novel - as well as the literary output of countries like Japan, Italy, Spain and Nigeria, he shows literary history looks significantly different from what is commonly supposed.}
+      \field{langid}{english}
+      \field{shorttitle}{Graphs, {{Maps}}, {{Trees}}}
+      \field{title}{Graphs, {{Maps}}, {{Trees}}: {{Abstract Models}} for a {{Literary History}}}
+      \field{year}{2005}
+      \keyw{Literary Criticism / American / General,Literary Criticism / General,Literary Criticism / Semiotics & Theory}
+    \endentry
+    \entry{ngaiTheoryGimmickAesthetic2020}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=e9fd6be4ed2832b68ebd2078db0bce4c}{%
+           family={Ngai},
+           familyi={N\bibinitperiod},
+           given={Sianne},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Cambridge [Massachusetts]}%
+      }
+      \list{publisher}{1}{%
+        {The Belknap P of Harvard UP}%
+      }
+      \strng{namehash}{e9fd6be4ed2832b68ebd2078db0bce4c}
+      \strng{fullhash}{e9fd6be4ed2832b68ebd2078db0bce4c}
+      \strng{fullhashraw}{e9fd6be4ed2832b68ebd2078db0bce4c}
+      \strng{bibnamehash}{e9fd6be4ed2832b68ebd2078db0bce4c}
+      \strng{authorbibnamehash}{e9fd6be4ed2832b68ebd2078db0bce4c}
+      \strng{authornamehash}{e9fd6be4ed2832b68ebd2078db0bce4c}
+      \strng{authorfullhash}{e9fd6be4ed2832b68ebd2078db0bce4c}
+      \strng{authorfullhashraw}{e9fd6be4ed2832b68ebd2078db0bce4c}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{"The gimmick lies latent in every made thing in capitalism, from the banana slicer to the cryptocurrency derivative to the readymade artwork that interprets itself. It includes both the painstakingly devised and the gratuitously disposable. It is what we call things when uncertain if they are over- or underperforming, if they are historically backward or just as problematically advanced, if they are wonders or tricks. With its promises about the saving of time; the reduction of labor; and the expansion of value, the gimmick gives us tantalizing glimpses of a world in which social life will no longer be organized by labor, but also of one regenerating the conditions that keep labor's social necessity in place. As Ngai takes us from the hoaxes of Edgar Allan Poe to artist Stan Douglas's interest in outmoded special effects, we begin to see how the aesthetic manipulation of the gimmick points to a much deeper exploitation. Against academic claims about Marx's value-labor theory's obsolescence, the gimmick reveals it as vibrantly alive in the realm of aesthetics"}
+      \field{langid}{english}
+      \field{shorttitle}{Theory of the Gimmick}
+      \field{title}{Theory of the Gimmick: Aesthetic Judgment and Capitalist Form}
+      \field{year}{2020}
+      \field{dateera}{ce}
+    \endentry
+    \entry{porterSpacePoeticMeter2018a}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=323fa4b468348c81615509c9f3ee9a78}{%
+           family={Porter},
+           familyi={P\bibinitperiod},
+           given={J.D.},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{323fa4b468348c81615509c9f3ee9a78}
+      \strng{fullhash}{323fa4b468348c81615509c9f3ee9a78}
+      \strng{fullhashraw}{323fa4b468348c81615509c9f3ee9a78}
+      \strng{bibnamehash}{323fa4b468348c81615509c9f3ee9a78}
+      \strng{authorbibnamehash}{323fa4b468348c81615509c9f3ee9a78}
+      \strng{authornamehash}{323fa4b468348c81615509c9f3ee9a78}
+      \strng{authorfullhash}{323fa4b468348c81615509c9f3ee9a78}
+      \strng{authorfullhashraw}{323fa4b468348c81615509c9f3ee9a78}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{The Stanford Literary Lab is a research collective that applies computational criticism, in all its forms, to the study of literature.}
+      \field{howpublished}{https://litlab.stanford.edu/hooddistance/}
+      \field{journaltitle}{Stanford Literary Lab}
+      \field{langid}{english}
+      \field{month}{3}
+      \field{title}{The {{Space}} of {{Poetic Meter}}}
+      \field{urlday}{15}
+      \field{urlmonth}{3}
+      \field{urlyear}{2025}
+      \field{year}{2018}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /Users/rj416/Zotero/storage/E6LUQKTK/hooddistance.html
+      \endverb
+    \endentry
+    \entry{readDrowningSlop2024}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=eb4f7033ad7f243671c904913d560547}{%
+           family={Read},
+           familyi={R\bibinitperiod},
+           given={Max},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{eb4f7033ad7f243671c904913d560547}
+      \strng{fullhash}{eb4f7033ad7f243671c904913d560547}
+      \strng{fullhashraw}{eb4f7033ad7f243671c904913d560547}
+      \strng{bibnamehash}{eb4f7033ad7f243671c904913d560547}
+      \strng{authorbibnamehash}{eb4f7033ad7f243671c904913d560547}
+      \strng{authornamehash}{eb4f7033ad7f243671c904913d560547}
+      \strng{authorfullhash}{eb4f7033ad7f243671c904913d560547}
+      \strng{authorfullhashraw}{eb4f7033ad7f243671c904913d560547}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{howpublished}{https://nymag.com/intelligencer/article/ai-generated-content-internet-online-slop-spam.html}
+      \field{journaltitle}{New York Magazine: Intelligence}
+      \field{month}{9}
+      \field{shorttitle}{Drowning in {{Slop}}}
+      \field{title}{Drowning in {{Slop}}}
+      \field{urlday}{18}
+      \field{urlmonth}{7}
+      \field{urlyear}{2025}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /Users/rj416/Zotero/storage/8BBKRQRX/ai-generated-content-internet-online-slop-spam.html
+      \endverb
+    \endentry
+    \entry{soldainiDolmaOpenCorpus2024}{inproceedings}{}{}
+      \name{author}{36}{}{%
+        {{un=0,uniquepart=base,hash=a276b79ba7f36d42fec6af09d6f81d1a}{%
+           family={Soldaini},
+           familyi={S\bibinitperiod},
+           given={Luca},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=68ff7c2db4acc03390dafebd4b1c4647}{%
+           family={Kinney},
+           familyi={K\bibinitperiod},
+           given={Rodney},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=71487e5571cc752d9d40f342f2046cb5}{%
+           family={Bhagia},
+           familyi={B\bibinitperiod},
+           given={Akshita},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=0d0cedce73d1ab408eb1d7d45246f907}{%
+           family={Schwenk},
+           familyi={S\bibinitperiod},
+           given={Dustin},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=0a0f6e6649cdbb105ddbad990a6b0d3f}{%
+           family={Atkinson},
+           familyi={A\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=17ff50d3cef91502736f0d8d3a469b0a}{%
+           family={Authur},
+           familyi={A\bibinitperiod},
+           given={Russell},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=6f46899228a16bc50874fe039c9747d8}{%
+           family={Bogin},
+           familyi={B\bibinitperiod},
+           given={Ben},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=f2e1c86997aae7e2ab210c8a2a90f893}{%
+           family={Chandu},
+           familyi={C\bibinitperiod},
+           given={Khyathi},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=163bd189e1f93c1ff235031fda8410c8}{%
+           family={Dumas},
+           familyi={D\bibinitperiod},
+           given={Jennifer},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ecf6844c3c1983ee94c878e2b9625fb8}{%
+           family={Elazar},
+           familyi={E\bibinitperiod},
+           given={Yanai},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=e6ae2f6a24120872e3f543ced226aad2}{%
+           family={Hofmann},
+           familyi={H\bibinitperiod},
+           given={Valentin},
+           giveni={V\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=8e043565cd336d05ea224aa423304676}{%
+           family={Jha},
+           familyi={J\bibinitperiod},
+           given={Ananya},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=3222537973f54c5e7fa94b7d8723d1c8}{%
+           family={Kumar},
+           familyi={K\bibinitperiod},
+           given={Sachin},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=1822262378c8e45f740f3709d04f3a36}{%
+           family={Lucy},
+           familyi={L\bibinitperiod},
+           given={Li},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=495a50109b0d7df7d26b3b4a36916ff4}{%
+           family={Lyu},
+           familyi={L\bibinitperiod},
+           given={Xinxi},
+           giveni={X\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=607a26c0223e87bec6d3a10ad4179a6a}{%
+           family={Lambert},
+           familyi={L\bibinitperiod},
+           given={Nathan},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=bda5ddf09b736d5a787bc9d2f46cde9f}{%
+           family={Magnusson},
+           familyi={M\bibinitperiod},
+           given={Ian},
+           giveni={I\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=feed11cde8a7c33bc961bc7a362eac9e}{%
+           family={Morrison},
+           familyi={M\bibinitperiod},
+           given={Jacob},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a2deb8466aa6f0edfe3cc805f9d776d8}{%
+           family={Muennighoff},
+           familyi={M\bibinitperiod},
+           given={Niklas},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7b4d33aa73e1247287983f3fbe1560c7}{%
+           family={Naik},
+           familyi={N\bibinitperiod},
+           given={Aakanksha},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=491d4aae4b480dad9bc9e076e31b4303}{%
+           family={Nam},
+           familyi={N\bibinitperiod},
+           given={Crystal},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=58252f22f39be9b96bf40c0ea14d0b93}{%
+           family={Peters},
+           familyi={P\bibinitperiod},
+           given={Matthew},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ab8be38c736f011bc98faabd1ea90c94}{%
+           family={Ravichander},
+           familyi={R\bibinitperiod},
+           given={Abhilasha},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=daeaa06d9ea0876824538dc786c03740}{%
+           family={Richardson},
+           familyi={R\bibinitperiod},
+           given={Kyle},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=cef18549073d127ed84c6ed4f6107189}{%
+           family={Shen},
+           familyi={S\bibinitperiod},
+           given={Zejiang},
+           giveni={Z\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d3bf550429e9ba5e3e93b995e9b40d85}{%
+           family={Strubell},
+           familyi={S\bibinitperiod},
+           given={Emma},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=910696a1aafdb7604c07c4ce912d05fc}{%
+           family={Subramani},
+           familyi={S\bibinitperiod},
+           given={Nishant},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=21dbac8bb4ba1ed555216a1d80595c20}{%
+           family={Tafjord},
+           familyi={T\bibinitperiod},
+           given={Oyvind},
+           giveni={O\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=3ea9fd26882292f1122993f3e98e7a59}{%
+           family={Walsh},
+           familyi={W\bibinitperiod},
+           given={Evan},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=1dbd3a5b42828fb2cebd7786488ba425}{%
+           family={Zettlemoyer},
+           familyi={Z\bibinitperiod},
+           given={Luke},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=e10b62b49b3ea65e73fd806c92faa67b}{%
+           family={Smith},
+           familyi={S\bibinitperiod},
+           given={Noah},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=e9dafefb58a6a6e1e496fdf8928b3eeb}{%
+           family={Hajishirzi},
+           familyi={H\bibinitperiod},
+           given={Hannaneh},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ad932527c4d078ff96e5f0b189c66c61}{%
+           family={Beltagy},
+           familyi={B\bibinitperiod},
+           given={Iz},
+           giveni={I\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=0ea00276f483e2f44e863bb0baaf8278}{%
+           family={Groeneveld},
+           familyi={G\bibinitperiod},
+           given={Dirk},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=59f4d94be729cf6353e7e169a54a92c2}{%
+           family={Dodge},
+           familyi={D\bibinitperiod},
+           given={Jesse},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=647a3130d4b4f62c11d9a9f9a15d1af1}{%
+           family={Lo},
+           familyi={L\bibinitperiod},
+           given={Kyle},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+      }
+      \name{editor}{3}{}{%
+        {{hash=1bcfba9c9362ce7af988775a8d5e1b80}{%
+           family={Ku},
+           familyi={K\bibinitperiod},
+           given={Lun-Wei},
+           giveni={L\bibinithyphendelim W\bibinitperiod}}}%
+        {{hash=5545e7248fbadb25de1f672f6cd846dc}{%
+           family={Martins},
+           familyi={M\bibinitperiod},
+           given={Andre},
+           giveni={A\bibinitperiod}}}%
+        {{hash=d353c169cbdb6171b51ab4026427e690}{%
+           family={Srikumar},
+           familyi={S\bibinitperiod},
+           given={Vivek},
+           giveni={V\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Bangkok, Thailand}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computational Linguistics}%
+      }
+      \strng{namehash}{4864c607a2e961d2178ca6a5bbd0908a}
+      \strng{fullhash}{d85737657549e1d0820da8542c8f6929}
+      \strng{fullhashraw}{d85737657549e1d0820da8542c8f6929}
+      \strng{bibnamehash}{4864c607a2e961d2178ca6a5bbd0908a}
+      \strng{authorbibnamehash}{4864c607a2e961d2178ca6a5bbd0908a}
+      \strng{authornamehash}{4864c607a2e961d2178ca6a5bbd0908a}
+      \strng{authorfullhash}{d85737657549e1d0820da8542c8f6929}
+      \strng{authorfullhashraw}{d85737657549e1d0820da8542c8f6929}
+      \strng{editorbibnamehash}{62d396a0f210c1554518cd993b9e4997}
+      \strng{editornamehash}{62d396a0f210c1554518cd993b9e4997}
+      \strng{editorfullhash}{62d396a0f210c1554518cd993b9e4997}
+      \strng{editorfullhashraw}{62d396a0f210c1554518cd993b9e4997}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Information about pretraining corpora used to train the current best-performing language models is seldom discussed: commercial models rarely detail their data, and even open models are often released without accompanying training data or recipes to reproduce them. As a result, it is challenging to conduct and advance scientific research on language modeling, such as understanding how training data impacts model capabilities and limitations. To facilitate scientific research on language model pretraining, we curate and release Dolma, a three-trillion-token English corpus, built from a diverse mixture of web content, scientific papers, code, public-domain books, social media, and encyclopedic materials. We extensively document Dolma, including its design principles, details about its construction, and a summary of its contents. We present analyses and experimental results on intermediate states of Dolma to share what we have learned about important data curation practices. Finally, we open-source our data curation toolkit to enable reproduction of our work as well as support further research in large-scale data curation.}
+      \field{booktitle}{Proceedings of the 62nd {{Annual Meeting}} of the {{Association}} for {{Computational Linguistics}} ({{Volume}} 1: {{Long Papers}})}
+      \field{month}{8}
+      \field{shorttitle}{Dolma}
+      \field{title}{Dolma: An {{Open Corpus}} of {{Three Trillion Tokens}} for {{Language Model Pretraining Research}}}
+      \field{year}{2024}
+      \field{pages}{15725\bibrangedash 15788}
+      \range{pages}{64}
+      \verb{file}
+      \verb /Users/rj416/Zotero/storage/D99DYFIE/Soldaini et al. - 2024 - Dolma an Open Corpus of Three Trillion Tokens for Language Model Pretraining Research.pdf
+      \endverb
+    \endentry
+    \entry{spechtGPTAnswerLife2023}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=4a57c6bc07a1ab1b47f634079b35a7ba}{%
+           family={Specht},
+           familyi={S\bibinitperiod},
+           given={Juan\bibnamedelima Ignacio},
+           giveni={J\bibinitperiod\bibinitdelim I\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{4a57c6bc07a1ab1b47f634079b35a7ba}
+      \strng{fullhash}{4a57c6bc07a1ab1b47f634079b35a7ba}
+      \strng{fullhashraw}{4a57c6bc07a1ab1b47f634079b35a7ba}
+      \strng{bibnamehash}{4a57c6bc07a1ab1b47f634079b35a7ba}
+      \strng{authorbibnamehash}{4a57c6bc07a1ab1b47f634079b35a7ba}
+      \strng{authornamehash}{4a57c6bc07a1ab1b47f634079b35a7ba}
+      \strng{authorfullhash}{4a57c6bc07a1ab1b47f634079b35a7ba}
+      \strng{authorfullhashraw}{4a57c6bc07a1ab1b47f634079b35a7ba}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{4}
+      \field{journaltitle}{Leniolabs}
+      \field{langid}{english}
+      \field{month}{10}
+      \field{title}{42: {{GPT}}'s Answer to {{Life}}, the {{Universe}}, and {{Everything}}}
+      \field{urlday}{14}
+      \field{urlmonth}{8}
+      \field{urlyear}{2025}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb leniolabs.com/42-gpt-answer-to-life-the-universe-and-everything/
+      \endverb
+      \verb{url}
+      \verb leniolabs.com/42-gpt-answer-to-life-the-universe-and-everything/
+      \endverb
+    \endentry
+    \entry{walshSonnetNotBot2024}{inproceedings}{}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=082f43609787b6ec0fff078e7e03a448}{%
+           family={Walsh},
+           familyi={W\bibinitperiod},
+           given={Melanie},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4c2843721fec6532e3bfd7277cd78164}{%
+           family={Preus},
+           familyi={P\bibinitperiod},
+           given={Anna},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=078a0a4b13c325965b528ce8ae3bc6cf}{%
+           family={Antoniak},
+           familyi={A\bibinitperiod},
+           given={Maria},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Miami, Florida, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computational Linguistics}%
+      }
+      \strng{namehash}{343fcebd525480180fa08655efa3c77a}
+      \strng{fullhash}{343fcebd525480180fa08655efa3c77a}
+      \strng{fullhashraw}{343fcebd525480180fa08655efa3c77a}
+      \strng{bibnamehash}{343fcebd525480180fa08655efa3c77a}
+      \strng{authorbibnamehash}{343fcebd525480180fa08655efa3c77a}
+      \strng{authornamehash}{343fcebd525480180fa08655efa3c77a}
+      \strng{authorfullhash}{343fcebd525480180fa08655efa3c77a}
+      \strng{authorfullhashraw}{343fcebd525480180fa08655efa3c77a}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Large language models (LLMs) can now generate and recognize poetry. But what do LLMs really know about poetry? We develop a task to evaluate how well LLMs recognize one aspect of English-language poetry--poetic form--which captures many different poetic features, including rhyme scheme, meter, and word or line repetition. By using a benchmark dataset of over 4.1k human expert-annotated poems, we show that state-of-the-art LLMs can successfully identify both common and uncommon fixed poetic forms--such as sonnets, sestinas, and pantoums--with surprisingly high accuracy. However, performance varies significantly by poetic form; the models struggle to identify unfixed poetic forms, especially those based on topic or visual features. We additionally measure how many poems from our benchmark dataset are present in popular pretraining datasets or memorized by GPT-4, finding that pretraining presence and memorization may improve performance on this task, but results are inconclusive. We release a benchmark evaluation dataset with 1.4k public domain poems and form annotations, results of memorization experiments and data audits, and code.}
+      \field{booktitle}{Findings of the {{Association}} for {{Computational Linguistics}}}
+      \field{eprintclass}{cs}
+      \field{month}{10}
+      \field{shorttitle}{Sonnet or {{Not}}, {{Bot}}?}
+      \field{title}{Sonnet or {{Not}}, {{Bot}}? {{Poetry Evaluation}} for {{Large Models}} and {{Datasets}}}
+      \field{year}{2024}
+      \verb{file}
+      \verb /Users/rj416/Zotero/storage/LUKXCX2Y/Walsh et al. - 2024 - Sonnet or Not, Bot Poetry Evaluation for Large Models and Datasets.pdf;/Users/rj416/Zotero/storage/FKLIVZUX/2406.html
+      \endverb
+      \keyw{Computer Science - Computation and Language}
+    \endentry
+    \entry{walshDoesChatGPTHave2024}{inproceedings}{}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=082f43609787b6ec0fff078e7e03a448}{%
+           family={Walsh},
+           familyi={W\bibinitperiod},
+           given={Melanie},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4c2843721fec6532e3bfd7277cd78164}{%
+           family={Preus},
+           familyi={P\bibinitperiod},
+           given={Anna},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9ee61889b814131b44807509093199c4}{%
+           family={Gronski},
+           familyi={G\bibinitperiod},
+           given={Elizabeth},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Aarhus, Denmark}%
+      }
+      \strng{namehash}{c8362434f37ab46fede85ad1476f8896}
+      \strng{fullhash}{c8362434f37ab46fede85ad1476f8896}
+      \strng{fullhashraw}{c8362434f37ab46fede85ad1476f8896}
+      \strng{bibnamehash}{c8362434f37ab46fede85ad1476f8896}
+      \strng{authorbibnamehash}{c8362434f37ab46fede85ad1476f8896}
+      \strng{authornamehash}{c8362434f37ab46fede85ad1476f8896}
+      \strng{authorfullhash}{c8362434f37ab46fede85ad1476f8896}
+      \strng{authorfullhashraw}{c8362434f37ab46fede85ad1476f8896}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \true{singletitle}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Generating poetry has become a popular application of LLMs, perhaps especially of OpenAI's widely-used chatbot ChatGPT. What kind of poet is ChatGPT? Does ChatGPT have its own poetic style? Can it successfully produce poems in different styles? To answer these questions, we prompt the GPT-3.5 and GPT-4 models to generate English-language poems in 24 different poetic forms and styles, about 40 different subjects, and in response to 3 different writing prompt templates. We then analyze the resulting 5.7k poems, comparing them to a sample of 3.7k poems from the Poetry Foundation and the Academy of American Poets. We find that the GPT models, especially GPT-4, can successfully produce poems in a range of both common and uncommon English-language forms in superficial yet noteworthy ways, such as by producing poems of appropriate lengths for sonnets (14 lines), villanelles (19 lines), and sestinas (39 lines). But the GPT models also exhibit their own distinct stylistic tendencies, both within and outside of these specific forms. Our results show that GPT poetry is much more constrained and uniform than human poetry, showing a strong penchant for rhyme, quatrains (4-line stanzas), iambic meter, first-person plural perspectives (we, us, our), and specific vocabulary like "heart," "embrace," "echo," and "whisper."}
+      \field{day}{20}
+      \field{eprintclass}{cs}
+      \field{eventtitle}{{{CHR}} 2024: {{Computational Humanities Research Conference}}}
+      \field{langid}{english}
+      \field{month}{10}
+      \field{title}{Does ChatGPT Have a Poetic Style?}
+      \field{urlday}{26}
+      \field{urlmonth}{10}
+      \field{urlyear}{2024}
+      \field{year}{2024}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /Users/ryan/Zotero/storage/GFC3WQAY/Walsh et al. - 2024 - Does ChatGPT Have a Poetic Style.pdf
+      \endverb
+      \verb{urlraw}
+      \verb arxiv.org/abs/2410.15299
+      \endverb
+      \verb{url}
+      \verb arxiv.org/abs/2410.15299
+      \endverb
+      \keyw{Computer Science - Computation and Language}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

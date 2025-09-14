@@ -547,7 +547,7 @@ def complete_poem(
     first_n_lines=5,
     force=False,
     model="deepseek/deepseek-chat",
-    verbose=False,
+    verbose=DEFAULT_VERBOSE,
     use_system_prompt=True,
     say_poem=True,
     temperature=DEFAULT_TEMPERATURE,
@@ -964,7 +964,7 @@ def get_first_n_lines(txt, n=5):
 
 
 def get_stash_df_completions(
-    stash=STASH_GENAI_RHYME_COMPLETIONS, verbose=False
+    stash=STASH_GENAI_RHYME_COMPLETIONS, verbose=DEFAULT_VERBOSE
 ):
     if verbose:
         print(f"* Collecting from {stash.path}")

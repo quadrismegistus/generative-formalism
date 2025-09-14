@@ -36,7 +36,7 @@ def get_rhyme_for_txt(txt, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=Fal
     return out
 
 
-def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=False, verbose=False, **kwargs):
+def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=False, verbose=DEFAULT_VERBOSE, **kwargs):
     df = df_smpl.fillna("")
     if 'id' in df.columns:
         df = df.set_index('id')
@@ -55,7 +55,7 @@ def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, fo
     return postprocess_rhyme_sample(df, df_rhymes)
 
 
-def postprocess_rhyme_sample(df_poems, df_rhymes, rhyme_threshold=4):
+def postprocess_rhyme_sample(df_poems, df_rhymes, rhyme_threshold=4, with_sample=False):
     # df = df_poems.join(df_rhymes, rsuffix='_prosodic', how='left')
     df = df_rhymes.reset_index()
     num_lines = df.num_lines_prosodic if 'num_lines_prosodic' in df.columns else df.num_lines
@@ -74,9 +74,11 @@ def postprocess_rhyme_sample(df_poems, df_rhymes, rhyme_threshold=4):
 
     if 'id' in df.columns:
         df = df.drop_duplicates(subset='id')
-        return df.set_index('id')
-    else:
-        return df
+        odf = df.set_index('id')
+    
+    if with_sample:
+        odf = odf.join(df_poems, how='left', rsuffix='_from_sample')
+    return odf
 
 def load_rhyme_data(path=None):
     if path and os.path.exists(path):
@@ -109,7 +111,7 @@ def compare_rhyme_data_by_group(
     groupby=['period'], 
     valname='rhyme_pred_perc', 
     min_group_size=100,
-    verbose=False,
+    verbose=DEFAULT_VERBOSE,
 ):
     return compare_data_by_group(df, groupby=groupby,valname=valname,min_group_size=min_group_size,verbose=verbose)
 

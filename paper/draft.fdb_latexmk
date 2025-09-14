@@ -1,0 +1,14 @@
+# Fdb version 4
+["pdflatex"] 1757841007.66645 "/Users/rj416/github/generative-formalism/paper/draft.tex" "draft.pdf" "draft" 1757841007.79507 2
+  "/Users/rj416/github/generative-formalism/paper/draft.tex" 1757841007.22967 76532 3d9a8d75b4a288154df5f969d64bb821 ""
+  "/usr/local/texlive/2025/texmf-dist/web2c/texmf.cnf" 1739380943 42148 61becc7c670cd061bb319c643c27fdd4 ""
+  "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1753210029 3345741 4c9f4534c3fd6faf0c4387a83c997a55 ""
+  "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
+  "draft.aux" 0 -1 0 "pdflatex"
+  "draft.tex" 1757841007.22967 76532 3d9a8d75b4a288154df5f969d64bb821 ""
+  "simple-humanities.cls" 0 -1 0 ""
+  (generated)
+  "draft.aux"
+  "draft.log"
+  "draft.pdf"
+  (rewritten before read)
