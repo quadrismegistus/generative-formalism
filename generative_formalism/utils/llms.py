@@ -163,7 +163,7 @@ async def generate_text_async(model: str, prompt: str, temperature: float = 0.7,
         output_parts.append(token)
     return ''.join(output_parts)
 
-def check_api_keys():
+def check_api_keys(verbose: bool = False):
     """
     Check if the API keys are set in the environment.
 
@@ -175,10 +175,11 @@ def check_api_keys():
     - ANTHROPIC_API_KEY: Anthropic (Claude) API key
     - DEEPSEEK_API_KEY: DeepSeek API key
     """
-    print(f'{"✓" if GEMINI_API_KEY else "X"} Gemini API key')
-    print(f'{"✓" if OPENAI_API_KEY else "X"} OpenAI API key')
-    print(f'{"✓" if ANTHROPIC_API_KEY else "X"} Anthropic API key')
-    print(f'{"✓" if DEEPSEEK_API_KEY else "X"} DeepSeek API key')
+    if verbose:
+        print(f'{"✓" if GEMINI_API_KEY else "X"} Gemini API key')
+        print(f'{"✓" if OPENAI_API_KEY else "X"} OpenAI API key')
+        print(f'{"✓" if ANTHROPIC_API_KEY else "X"} Anthropic API key')
+        print(f'{"✓" if DEEPSEEK_API_KEY else "X"} DeepSeek API key')
     
     out = []
     if GEMINI_API_KEY:
@@ -413,3 +414,37 @@ def describe_models(models=MODEL_LIST, model_to_type=MODEL_TO_TYPE):
         print(f'  * {type}:')
         for model in models:
             print(f'    - {model}')
+
+def filter_available_models(models=MODEL_LIST, verbose=False):
+    """
+    Filter the models to only include those with API keys.
+    """
+    api_keys = check_api_keys(verbose=verbose)
+    models2 = []
+    for model in models:
+        if model in api_keys:
+            if verbose:
+                print(f'  ✓ {model}')
+            models2.append(model)
+        else:
+            if verbose:
+                print(f'  ✗ {model}')
+    return models2
+
+
+def get_demo_model_prompt(demo_model=None, demo_prompt=None, verbose=True):
+    """
+    Return demo model and prompt, defaults to DEMO_MODEL and DEMO_PROMPT.
+    """
+    #     print(f'''* Demo model: {demo_model}
+    # * Demo prompt: {demo_prompt}
+    # ''')
+
+    if demo_model is None:
+        available_models = filter_available_models(models=MODEL_LIST, verbose=verbose)
+        demo_model = available_models[0] if available_models else MODEL_LIST[0]
+    if demo_prompt is None:
+        # demo_prompt = random.choice(PROMPT_LIST)
+        demo_prompt = DEMO_PROMPT
+
+    return demo_model, demo_prompt

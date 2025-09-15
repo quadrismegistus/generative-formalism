@@ -564,18 +564,6 @@ def get_num_poems_per_model_table(df_prompts, return_display=False, as_in_paper=
 
 
 # Get demo
-def get_demo_model_prompt(demo_model=DEMO_MODEL, demo_prompt=DEMO_PROMPT):
-    """
-    Return demo model and prompt, defaults to DEMO_MODEL and DEMO_PROMPT.
-    """
-    #     print(f'''* Demo model: {demo_model}
-    # * Demo prompt: {demo_prompt}
-    # ''')
-
-    return demo_model, demo_prompt
-
-def get_random_model_prompt():
-    return random.choice(MODEL_LIST), random.choice(PROMPT_LIST)
 
 def get_rhyme_for_prompted_poems_as_in_paper(**kwargs):
     raise NotImplementedError("Use get_rhyme_for_prompted_poems_by(..., as_in_paper=True) instead")
