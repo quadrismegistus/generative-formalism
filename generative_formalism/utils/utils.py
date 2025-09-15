@@ -653,7 +653,7 @@ def timeout(seconds):
     return decorator
 
 
-def documentation(func, docstring=True, signature=False, source=False):
+def documentation(func, docstring=True, signature=False, source=False, short_docstring=True):
     if source:
         signature = False
     try:
@@ -678,7 +678,13 @@ def documentation(func, docstring=True, signature=False, source=False):
         markdown_content = f"##### `{func.__name__}`"
         
         if docstring:
-            markdown_content += f"""
+            if short_docstring:
+                # docstr = func.__doc__.split('Parameters')[0].strip()
+                docstr = func.__doc__.strip().split('\n')[0].strip()
+                markdown_content+=f': {docstr}'
+       
+            else:
+                markdown_content += f"""
 
 ```md
 {func.__doc__}

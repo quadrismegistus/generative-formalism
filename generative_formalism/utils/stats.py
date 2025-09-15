@@ -200,7 +200,7 @@ def compute_all_stat_signif(df, groupby='period', groupby_stat='model', valname=
     iterr = tqdm(list(df.groupby(groupby)), desc='Computing all statistical significance tests')
     for g, gdf in iterr:
         iterr.set_description(f'Computing statistical significance tests for {groupby}={g}')
-        ogdf = compute_stat_signif(gdf, groupby_stat, valname, verbose=False).assign(groupby=g)
+        ogdf = compute_stat_signif(gdf, groupby_stat, valname, verbose=DEFAULT_VERBOSE).assign(groupby=g)
         o.append(ogdf)
     return pd.concat(o)  # .sort_values(['groupby', 'effect_size'], ascending=False).set_index(['groupby', 'comparison']) if len(o) > 0 else pd.DataFrame()
 

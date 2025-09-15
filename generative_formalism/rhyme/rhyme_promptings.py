@@ -287,7 +287,7 @@ def preprocess_rhyme_promptings(overwrite=False, verbose=DEFAULT_VERBOSE, **kwar
     return df_prompts.rename(columns={'response': 'txt', 'temp':'temperature'})
 
 
-def get_all_genai_rhyme_promptings(*args, display=False, verbose=True, **kwargs):
+def get_all_genai_rhyme_promptings(*args, **kwargs):
     """
     Collect all genai rhyme promptings from both the paper and replicated here.
 
@@ -300,12 +300,9 @@ def get_all_genai_rhyme_promptings(*args, display=False, verbose=True, **kwargs)
     Returns:
         pd.DataFrame: All genai rhyme promptings
     """
-    df1 = get_genai_rhyme_promptings_by(*args, as_in_paper=True, as_replicated=False, display=False, verbose=verbose, **kwargs)
-    df2 = get_genai_rhyme_promptings_by(*args, as_in_paper=False, as_replicated=True, display=False, verbose=verbose, **kwargs)
-    odf = pd.concat([df1, df2])
-    if display:
-        display_rhyme_promptings(odf, **kwargs)
-    return odf
+    kwargs["as_in_paper"] = True
+    kwargs["as_replicated"] = False
+    return get_genai_rhyme_promptings(*args, **kwargs)
 
 
 def display_rhyme_promptings(df_prompts, **kwargs):

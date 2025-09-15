@@ -179,6 +179,17 @@ def check_api_keys():
     print(f'{"✓" if OPENAI_API_KEY else "X"} OpenAI API key')
     print(f'{"✓" if ANTHROPIC_API_KEY else "X"} Anthropic API key')
     print(f'{"✓" if DEEPSEEK_API_KEY else "X"} DeepSeek API key')
+    
+    out = []
+    if GEMINI_API_KEY:
+        out.append("GEMINI_API_KEY")
+    if OPENAI_API_KEY:
+        out.append("OPENAI_API_KEY")
+    if ANTHROPIC_API_KEY:
+        out.append("ANTHROPIC_API_KEY")
+    if DEEPSEEK_API_KEY:
+        out.append("DEEPSEEK_API_KEY")
+    return out
 
 def generate_text(model: str, prompt: str, temperature: float = DEFAULT_TEMPERATURE, system_prompt: str | None = None, verbose: bool = False, force: bool = False, stash: 'BaseHashStash' = STASH_GENAI) -> str:
     """Generate text with caching support (synchronous interface).
@@ -378,15 +389,12 @@ def describe_prompts(prompts=PROMPT_LIST, prompt_to_type=PROMPT_TO_TYPE):
     type_to_prompts = {v:[] for v in set(prompt_to_type.values())}
     for prompt, type in prompt_to_type.items():
         type_to_prompts[type].append(prompt)
-    print(f'''* {len(set(prompts))} unique prompts
-* {len(set([prompt_to_type.get(p, p) for p in prompts]))} prompt types
-
-* List of prompts:
-  {pformat(prompts)}
-
-* List of prompt types:
-  {pformat(type_to_prompts)}
-''')
+    print(f'''* {len(set(prompts))} unique prompts\n* {len(set([prompt_to_type.get(p, p) for p in prompts]))} prompt types''')
+    for type, prompts in type_to_prompts.items():
+        print(f'  * {type}:')
+        for prompt in prompts:
+            print(f'    - {prompt}')
+        print()
 
 def describe_models(models=MODEL_LIST, model_to_type=MODEL_TO_TYPE):
     """Print a description of the models with statistics and details.
@@ -400,8 +408,8 @@ def describe_models(models=MODEL_LIST, model_to_type=MODEL_TO_TYPE):
     for model, type in model_to_type.items():
         type_to_models[type].append(model)
     # Models
-    print(f'''* {len(models)} models (counting parameter changes)
-  * {len(type_to_models)} model types ({", ".join(sorted(type_to_models.keys()))})
-  * Using models:
-  {pformat(type_to_models, indent=4)}
-  ''')
+    print(f'''* {len(models)} models (counting parameter changes)\n* {len(type_to_models)} model types ({", ".join(sorted(type_to_models.keys()))})''')
+    for type, models in type_to_models.items():
+        print(f'  * {type}:')
+        for model in models:
+            print(f'    - {model}')

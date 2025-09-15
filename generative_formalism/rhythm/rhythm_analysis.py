@@ -7,7 +7,7 @@ def get_sonnet_rhythm_data(
     sample_by="sonnet_period",
     force=False,
     collapse_C17_19=True,
-    verbose=False,
+    verbose=DEFAULT_VERBOSE,
 ):
     """Get combined rhythm analysis data for sonnets from multiple sources.
 

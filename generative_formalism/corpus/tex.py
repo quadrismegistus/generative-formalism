@@ -1,6 +1,6 @@
 from . import *
 
-def get_period_subcorpus_table(df_smpl, save_latex_to=None, save_latex_to_suffix='tmp',return_display=False, table_num=None, verbose=False, as_in_paper=True, as_replicated=False, **kwargs):
+def get_period_subcorpus_table(df_smpl, save_latex_to=None, save_latex_to_suffix='tmp',return_display=False, table_num=None, verbose=DEFAULT_VERBOSE, as_in_paper=True, as_replicated=False, **kwargs):
     """Build a period×subcorpus summary table and optionally save LaTeX.
 
     Creates a formatted table showing the distribution of poems and poets

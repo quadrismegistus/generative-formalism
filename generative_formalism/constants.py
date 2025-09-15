@@ -192,6 +192,18 @@ MODEL_LIST = [
     'ollama/olmo2:13b'
 ]
 
+def get_model_api_key_required(model: str) -> str:
+    if 'gemini' in model:
+        return 'GEMINI_API_KEY'
+    elif 'gpt' in model:
+        return 'OPENAI_API_KEY'
+    elif 'claude' in model:
+        return 'ANTHROPIC_API_KEY'
+    elif 'deepseek' in model:
+        return 'DEEPSEEK_API_KEY'
+    else:
+        return ''
+
 
 # Demos
 DEMO_MODEL = MODEL_LIST[0]

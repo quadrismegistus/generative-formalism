@@ -17,7 +17,7 @@ def sample_chadwyck_corpus(
     max_sample_n=MAX_SAMPLE_N,
     prefer_min_id_hash=False,
     sort_id_hash=True,
-    verbose=False,
+    verbose=DEFAULT_VERBOSE,
 ) -> pd.DataFrame:
     """Deterministically sample the corpus by one or more grouping criteria.
 
@@ -102,7 +102,7 @@ def get_chadwyck_corpus_sampled_by(
     as_in_paper=True,
     as_replicated=False,
     display=False,
-    verbose=False,
+    verbose=DEFAULT_VERBOSE,
     **kwargs,
 ) -> pd.DataFrame:
     """Load or generate a sampled corpus by the specified criteria.
@@ -121,7 +121,7 @@ def get_chadwyck_corpus_sampled_by(
         If True, load/generate replicated sample.
     display : bool, default=False
         If True, display summary statistics for the sample.
-    verbose : bool, default=False
+    verbose : bool, default=DEFAULT_VERBOSE
         If True, print progress information.
     **kwargs
         Additional arguments passed to generation/display functions.
@@ -262,7 +262,7 @@ def get_chadwyck_corpus_sampled_by_replicated(
     sample_by,
     force=False,
     display=False,
-    verbose=False,
+    verbose=DEFAULT_VERBOSE,
     as_in_paper=True,
     as_replicated=False,
     **kwargs,
@@ -311,11 +311,7 @@ def get_chadwyck_corpus_sampled_by_replicated(
 
     sort_id_hash = not as_replicated
     if verbose:
-        print(f'-' * 40)
-        print(f'* Getting corpus sampled by{sample_by}')
-        print(f'* as_in_paper: {as_in_paper}')
-        print(f'* as_replicated: {as_replicated}')
-        print(f'* sort_id_hash: {sort_id_hash}')
+        print(f'* Getting corpus sampled by {sample_by}')
 
     # Map sample_by to the appropriate data name
     data_name_map = {

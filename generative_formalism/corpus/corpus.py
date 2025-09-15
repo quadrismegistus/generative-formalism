@@ -23,7 +23,7 @@ def get_chadwyck_corpus_metadata(
     max_num_lines=MAX_NUM_LINES,
     min_author_dob=MIN_AUTHOR_DOB,
     max_author_dob=MAX_AUTHOR_DOB,
-    verbose=False,
+    verbose=DEFAULT_VERBOSE,
 ) -> pd.DataFrame:
     """Load and normalize Chadwyck-Healey corpus metadata.
 
@@ -134,7 +134,7 @@ def get_chadwyck_corpus_metadata(
 
 
 
-def download_chadwyck_corpus_metadata(overwrite=False, verbose=False):
+def download_chadwyck_corpus_metadata(overwrite=False, verbose=DEFAULT_VERBOSE):
     """Download and unzip the Chadwyck-Healey corpus metadata file.
 
     Downloads the metadata CSV file from the configured URL if it doesn't exist
@@ -167,7 +167,7 @@ def download_chadwyck_corpus_metadata(overwrite=False, verbose=False):
             print(f'* Unzipping metadata to {PATH_CHADWYCK_HEALEY_METADATA}')
         unzip_file(PATH_CHADWYCK_HEALEY_METADATA_ZIP, PATH_CHADWYCK_HEALEY_METADATA)
 
-def download_chadwyck_corpus_txt(overwrite=False, verbose=False):
+def download_chadwyck_corpus_txt(overwrite=False, verbose=DEFAULT_VERBOSE):
     """Download and unzip the Chadwyck-Healey corpus text files.
 
     Downloads the corpus text files (individual poem text files) from the
@@ -237,7 +237,7 @@ def get_txt(id, clean_poem=True) -> str:
             return out
     return ""
 
-def get_chadwyck_corpus_texts(df_meta, clean_poem=True, verbose=False) -> list[str]:
+def get_chadwyck_corpus_texts(df_meta, clean_poem=True, verbose=DEFAULT_VERBOSE) -> list[str]:
     """Load poem text content for all poems in the metadata DataFrame.
 
     Efficiently loads text content for multiple poems by iterating through
@@ -272,7 +272,7 @@ def get_chadwyck_corpus_texts(df_meta, clean_poem=True, verbose=False) -> list[s
         for id in tqdm(df_meta.reset_index().id, desc='  ')
     ]
 
-def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, download_if_necessary=True, **kwargs) -> pd.DataFrame:
+def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, download_if_necessary=True, verbose=DEFAULT_VERBOSE, **kwargs) -> pd.DataFrame:
     """Load metadata and poem texts into a single corpus DataFrame.
 
     Combines corpus metadata with poem text content into a single DataFrame.
@@ -303,10 +303,11 @@ def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, downl
     - get_chadwyck_corpus_texts(df_meta, clean_poem=clean_poem) [to load poem texts]
     """
     global CORPUS
-    print(f'* Loading Chadwyck-Healey corpus (metadata + txt)')
+    if verbose:
+        print(f'* Loading Chadwyck-Healey corpus (metadata + txt)')
 
     if not force and CORPUS is not None:
-        print('* Loading corpus from memory')
+        # print('* Loading corpus from memory')
         return CORPUS
 
     df_meta = get_chadwyck_corpus_metadata(*args, **kwargs) if df_meta is None else df_meta
@@ -334,7 +335,7 @@ def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, downl
 
 
 
-def check_paths():
+def check_chadwyck_healey_paths():
     """Check if the paths to the Chadwyck-Healey corpus and metadata are set and exist.
 
     Validates the configuration and availability of corpus files and URLs.
@@ -351,12 +352,18 @@ def check_paths():
     - os.path.exists(PATH_CHADWYCK_HEALEY_METADATA)
     """
     # Get the Chadwyck-Healey corpus path
-    print(f"""{"✓" if PATH_CHADWYCK_HEALEY_TXT and os.path.exists(PATH_CHADWYCK_HEALEY_TXT) else "X"} Chadwyck-Healey corpus path: {PATH_CHADWYCK_HEALEY_TXT}""")
-    print(f"""{"✓" if PATH_CHADWYCK_HEALEY_METADATA and os.path.exists(PATH_CHADWYCK_HEALEY_METADATA) else "X"} Chadwyck-Healey metadata path: {PATH_CHADWYCK_HEALEY_METADATA}""")
+    path_txt_exists = PATH_CHADWYCK_HEALEY_TXT and os.path.exists(PATH_CHADWYCK_HEALEY_TXT)
+    path_metadata_exists = PATH_CHADWYCK_HEALEY_METADATA and os.path.exists(PATH_CHADWYCK_HEALEY_METADATA)
+    url_txt_exists = URL_CHADWYCK_HEALEY_TXT and URL_CHADWYCK_HEALEY_TXT
+    url_metadata_exists = URL_CHADWYCK_HEALEY_METADATA and URL_CHADWYCK_HEALEY_METADATA
+    print(f"""{"✓" if path_txt_exists else "X"} Chadwyck-Healey corpus path: {PATH_CHADWYCK_HEALEY_TXT}""")
+    print(f"""{"✓" if path_metadata_exists else "X"} Chadwyck-Healey metadata path: {PATH_CHADWYCK_HEALEY_METADATA}""")
 
     # Download if necessary?
-    print(f"""{"✓" if URL_CHADWYCK_HEALEY_METADATA and URL_CHADWYCK_HEALEY_METADATA else "X"} Metadata file URL set in environment (.env or shell)""")
-    print(f"""{"✓" if URL_CHADWYCK_HEALEY_TXT and URL_CHADWYCK_HEALEY_TXT else "X"} Corpus text file URL set in environment (.env or shell)""")
+    print(f"""{"✓" if url_metadata_exists else "X"} Metadata file URL set in environment (.env or shell)""")
+    print(f"""{"✓" if url_txt_exists else "X"} Corpus text file URL set in environment (.env or shell)""")
+
+    return bool((path_txt_exists and path_metadata_exists) or (url_txt_exists and url_metadata_exists))
 
 
 
