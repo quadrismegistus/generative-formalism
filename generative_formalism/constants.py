@@ -34,9 +34,37 @@ STASH_COMPRESS = 'lz4'
 STASH_B64 = True
 
 def get_stash(path, engine=STASH_ENGINE, serializer=STASH_SERIALIZER, compress=STASH_COMPRESS, b64=STASH_B64):
+    """Create a HashStash instance with configured defaults.
+
+    Creates a caching HashStash object with the specified path and default
+    configuration parameters for storage engine, serialization, compression,
+    and base64 encoding.
+
+    Parameters
+    ----------
+    path : str
+        File path for the stash storage.
+    engine : str, default=STASH_ENGINE
+        Storage engine ('lmdb' or 'jsonl').
+    serializer : str, default=STASH_SERIALIZER
+        Serialization method for stored objects.
+    compress : str, default=STASH_COMPRESS
+        Compression algorithm for stored data.
+    b64 : bool, default=STASH_B64
+        Whether to use base64 encoding for stored data.
+
+    Returns
+    -------
+    HashStash
+        Configured HashStash instance ready for caching operations.
+
+    Calls
+    -----
+    - HashStash(path, append_mode=True, engine=engine, serializer=serializer, compress=compress, b64=b64)
+    """
     if engine=='jsonl' and not path.endswith('.jsonl'):
         path = f'{path}.jsonl'
-    
+
     return HashStash(path, append_mode=True, engine=engine, serializer=serializer, compress=compress, b64=b64)
 
 STASH_GENAI_RHYME_PROMPTS = get_stash(PATH_STASH_GENAI_RHYME_PROMPTS)

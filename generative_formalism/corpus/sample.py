@@ -51,7 +51,7 @@ def sample_chadwyck_corpus(
 
     Calls
     -----
-    - describe_qual(s, count=False) [to display group size distribution]
+    - describe_qual(s, count=False, name="/".join(sample_by)) [to display group size distribution]
     """
 
     if not len(df_corpus):
@@ -108,20 +108,38 @@ def get_chadwyck_corpus_sampled_by(
 ) -> pd.DataFrame:
     """Load or generate a sampled corpus by the specified criteria.
 
+    Loads a precomputed sampled corpus from disk if available, otherwise
+    generates a new sample. Handles different sample types including period,
+    period×subcorpus, rhyme, and sonnet-based sampling.
+
     Parameters
-    - sample_by: Sampling criteria ('period', 'period_subcorpus', 'rhyme', 'sonnet_period')
-    - as_in_paper: If True, load precomputed sample from paper
-    - as_replicated: If True, load/generate replicated sample
-    - as_regenerated: If True, load/generate regenrated sample
-    - **kwargs: Additional arguments passed to generation/display functions
+    ----------
+    sample_by : str
+        Sampling criteria ('period', 'period_subcorpus', 'rhyme', 'sonnet_period').
+    as_in_paper : bool, default=True
+        If True, load precomputed sample from paper.
+    as_replicated : bool, default=False
+        If True, load/generate replicated sample.
+    as_regenerated : bool, default=False
+        If True, load/generate regenerated sample.
+    display : bool, default=False
+        If True, display summary statistics for the sample.
+    verbose : bool, default=False
+        If True, print progress information.
+    **kwargs
+        Additional arguments passed to generation/display functions.
 
     Returns
-    - pd.DataFrame containing the sampled corpus
+    -------
+    pd.DataFrame
+        DataFrame containing the sampled corpus.
 
     Calls
     -----
-    - get_path(data_name, as_in_paper=True, as_replicated=False)
-
+    - get_path(data_name, as_in_paper=True, as_replicated=False, as_regenerated=False)
+    - get_chadwyck_corpus_sampled_by_replicated(...) [if as_replicated or as_regenerated is True]
+    - pd.read_csv(path).fillna("").set_index("id").sort_values("id_hash") [if loading precomputed sample]
+    - describe_qual_grouped(odf, groupby=gby, sort_index=True, count=False, name=sample_by) [if display=True]
     """
     from .tex import display_period_subcorpus_tables
 
@@ -192,7 +210,8 @@ def gen_chadwyck_corpus_sampled_by(sample_by, display=False, **kwargs) -> pd.Dat
         Sampling criteria ('rhyme', 'period', 'period_subcorpus', 'sonnet_period').
     display : bool, default=False
         If True, display summary tables for certain sample types (e.g., period).
-    **kwargs: Additional arguments passed to sample_chadwyck_corpus
+    **kwargs
+        Additional arguments passed to sample_chadwyck_corpus.
 
     Returns
     -------
@@ -202,7 +221,7 @@ def gen_chadwyck_corpus_sampled_by(sample_by, display=False, **kwargs) -> pd.Dat
     Calls
     -----
     - get_chadwyck_corpus() [to load the full corpus]
-    - sample_chadwyck_corpus(df_corpus, sample_by=...) [to create stratified sample]
+    - sample_chadwyck_corpus(df_corpus, sample_by=sample_by, **kwargs) [to create stratified sample]
     - get_period_subcorpus_table(df, return_display=True) [if display=True for period samples]
     - display(img) [if display=True and IPython available]
     """

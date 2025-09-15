@@ -2,15 +2,82 @@ from . import *
 
 
 def get_id_hash(id, seed=42, max_val=1000000):
+    """Generate a deterministic hash-based integer for reproducible sampling.
+
+    Creates a deterministic integer hash from an ID string using a seeded
+    random number generator. Useful for reproducible sampling and sorting.
+
+    Parameters
+    ----------
+    id : str
+        Identifier string to hash.
+    seed : int, default=42
+        Random seed for reproducibility.
+    max_val : int, default=1000000
+        Maximum value for the generated hash (exclusive).
+
+    Returns
+    -------
+    int
+        Deterministic hash value between 0 and max_val-1.
+
+    Calls
+    -----
+    - random.seed(hash(id) + seed)
+    - random.randint(0, max_val - 1)
+    """
     random.seed(hash(id) + seed)
     return random.randint(0, max_val - 1)
 
 
 def get_id_hash_str(id):
+    """Generate a short SHA256 hash string for an identifier.
+
+    Creates an 8-character hexadecimal hash string from the input ID
+    using SHA256. Useful for creating short, unique identifiers.
+
+    Parameters
+    ----------
+    id : str
+        Identifier string to hash.
+
+    Returns
+    -------
+    str
+        8-character hexadecimal hash string.
+
+    Calls
+    -----
+    - sha256(id.encode()).hexdigest()[:8]
+    """
     from hashlib import sha256
     return sha256(id.encode()).hexdigest()[:8]
 
 def save_sample(df, path_sample, overwrite=False):
+    """Save a DataFrame sample to CSV with automatic backup handling.
+
+    Saves a DataFrame to the specified path. If the file already exists
+    and overwrite=False, creates a timestamped backup filename instead.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame to save.
+    path_sample : str
+        Target path for the CSV file.
+    overwrite : bool, default=False
+        If True, overwrite existing files without creating backups.
+
+    Returns
+    -------
+    None
+        Saves file to disk and prints confirmation message.
+
+    Calls
+    -----
+    - os.makedirs(os.path.dirname(path_sample), exist_ok=True)
+    - df.to_csv(path_sample) or df.to_csv(path_sample_now)
+    """
     os.makedirs(os.path.dirname(path_sample), exist_ok=True)
     if overwrite or not os.path.exists(path_sample):
         df.to_csv(path_sample)
@@ -23,6 +90,25 @@ def save_sample(df, path_sample, overwrite=False):
         print(f'* Saved sample to {path_sample_now}')
 
 def try_display(obj):
+    """Attempt to display an object using IPython display, with graceful fallback.
+
+    Tries to use IPython's display function to show the object. If IPython
+    is not available, silently does nothing.
+
+    Parameters
+    ----------
+    obj : any
+        Object to display (e.g., DataFrame, plot, image).
+
+    Returns
+    -------
+    None
+        Displays object if possible, otherwise does nothing.
+
+    Calls
+    -----
+    - display(obj) [if IPython available]
+    """
     try:
         from IPython.display import display
         display(obj)
@@ -30,6 +116,29 @@ def try_display(obj):
         pass
 
 def printm(text, *args, **kwargs):
+    """Print text with Markdown rendering in Jupyter, fallback to plain print.
+
+    Displays text as Markdown in Jupyter notebooks if available, otherwise
+    falls back to standard print. Useful for formatted output that works
+    in both notebook and console environments.
+
+    Parameters
+    ----------
+    text : str
+        Text to display, potentially with Markdown formatting.
+    *args, **kwargs
+        Additional arguments passed to print() function.
+
+    Returns
+    -------
+    None
+        Displays text using appropriate method for environment.
+
+    Calls
+    -----
+    - display(Markdown(str(text))) [in Jupyter notebooks]
+    - print(text, *args, **kwargs) [fallback or when print args provided]
+    """
     try:
         from IPython.display import display, Markdown
         get_ipython()

@@ -275,16 +275,32 @@ def get_chadwyck_corpus_texts(df_meta, clean_poem=True, verbose=False) -> list[s
 def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, download_if_necessary=True, **kwargs) -> pd.DataFrame:
     """Load metadata and poem texts into a single corpus DataFrame.
 
+    Combines corpus metadata with poem text content into a single DataFrame.
+    Uses in-memory caching to avoid repeated expensive loading operations.
+
     Parameters
-    - clean_poem: If True, clean poem texts after reading.
-    - force: If True, ignore in-memory cache and rebuild corpus.
-    - args/kwargs: Passed to `get_chadwyck_corpus_metadata`.
+    ----------
+    df_meta : pd.DataFrame, optional
+        Pre-loaded metadata DataFrame. If None, loads using get_chadwyck_corpus_metadata.
+    clean_poem : bool, default=True
+        If True, apply text cleaning/normalization to poem texts.
+    force : bool, default=False
+        If True, ignore in-memory cache and rebuild corpus.
+    download_if_necessary : bool, default=True
+        If True, download corpus files if not present locally.
+    *args, **kwargs
+        Additional arguments passed to get_chadwyck_corpus_metadata.
 
     Returns
-    - pd.DataFrame with metadata plus a `txt` column containing poem text.
+    -------
+    pd.DataFrame
+        DataFrame with metadata plus a 'txt' column containing poem text.
 
-    Side Effects
-    - Caches the result in the module-level `CORPUS`.
+    Calls
+    -----
+    - get_chadwyck_corpus_metadata(*args, **kwargs) [if df_meta is None]
+    - download_chadwyck_corpus_txt() [if download_if_necessary=True and corpus text not found]
+    - get_chadwyck_corpus_texts(df_meta, clean_poem=clean_poem) [to load poem texts]
     """
     global CORPUS
     print(f'* Loading Chadwyck-Healey corpus (metadata + txt)')
