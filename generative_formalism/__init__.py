@@ -37,6 +37,7 @@ load_dotenv()
 
 p9.options.figure_size = (10, 5)
 p9.options.dpi = 300
+pd.options.display.max_rows = 25
 
 prosodic.USE_CACHE = False
 prosodic.LOG_LEVEL = 'CRITICAL'
@@ -52,3 +53,4 @@ from .constants import *  # noqa: E402,F401,F403
 from .utils import *  # noqa: E402,F401,F403
 from .corpus import *  # noqa: E402,F401,F403
 from .rhyme import *  # noqa: E402,F401,F403
+from .rhythm import *  # noqa: E402,F401,F403

@@ -2,6 +2,32 @@ from . import *
 from itertools import combinations
 
 def cohen_d(x, y):
+    """
+    Calculate Cohen's d effect size between two groups.
+
+    Cohen's d is a measure of the standardized difference between two means.
+    It represents how many standard deviations the means are apart.
+
+    Parameters
+    ----------
+    x : array-like
+        First group of values
+    y : array-like
+        Second group of values
+
+    Returns
+    -------
+    float
+        Cohen's d effect size. Positive values indicate x has higher mean than y.
+        Effect sizes are typically interpreted as:
+        - 0.2: small effect
+        - 0.5: medium effect
+        - 0.8: large effect
+
+    Calls
+    -----
+    None
+    """
     nx, ny = len(x), len(y)
     dof = nx + ny - 2
     pooled_std = np.sqrt(((nx - 1) * np.var(x, ddof=1) + (ny - 1) * np.var(y, ddof=1)) / dof)
@@ -9,6 +35,34 @@ def cohen_d(x, y):
 
 
 def permutation_test(x, y, n_permutations=10000):
+    """
+    Perform a permutation test to assess the statistical significance of the difference between two groups.
+
+    This non-parametric test randomly shuffles the combined data and recalculates the difference
+    many times to create a null distribution, then calculates the p-value based on where the
+    observed difference falls in this distribution.
+
+    Parameters
+    ----------
+    x : array-like
+        First group of values
+    y : array-like
+        Second group of values
+    n_permutations : int, default=10000
+        Number of permutations to perform. Higher values give more precise p-values
+        but take longer to compute.
+
+    Returns
+    -------
+    float
+        Two-tailed p-value representing the probability of observing a difference
+        as extreme as the one observed, assuming the null hypothesis is true.
+        Values below 0.05 typically indicate statistical significance.
+
+    Calls
+    -----
+    None
+    """
     observed_diff = np.mean(x) - np.mean(y)
     combined = np.concatenate([x, y])
     n1 = len(x)
@@ -21,18 +75,59 @@ def permutation_test(x, y, n_permutations=10000):
     return p_value
 
 
-def compute_stat_signif(df, groupby='model', valname='rhyme_pred_perc',verbose=DEFAULT_VERBOSE,min_group_size=10,group_name='group'):
+def compute_stat_signif(df, groupby='model', valname='rhyme_pred_perc', verbose=DEFAULT_VERBOSE, min_group_size=10, group_name='group'):
+    """
+    Compute statistical significance tests between all pairs of groups in a DataFrame.
+
+    Performs pairwise comparisons between groups using Cohen's d effect size and permutation tests.
+    Returns a DataFrame with comparison results including p-values, effect sizes, and means.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing the data to analyze
+    groupby : str or list of str, default='model'
+        Column name(s) to group by for comparisons. If string, will be converted to list.
+    valname : str, default='rhyme_pred_perc'
+        Column name containing the values to compare between groups
+    verbose : bool, default=DEFAULT_VERBOSE
+        Whether to show progress bar during computation
+    min_group_size : int, default=10
+        Minimum number of samples required in each group for comparison
+    group_name : str, default='group'
+        Name of temporary column created to store combined group identifiers
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with comparison results containing:
+        - comparison: String describing the comparison (e.g., "group1 vs group2")
+        - n1, n2: Sample sizes of each group
+        - p_value: Statistical significance from permutation test
+        - effect_size: Absolute Cohen's d effect size
+        - effect_size_str: Categorical effect size ('', 'small', 'medium', 'large')
+        - mean1, mean2: Means of each group
+        - significant: Boolean indicating if p < 0.05
+        - Additional columns for each grouping variable
+
+    Calls
+    -----
+    - cohen_d()
+    - permutation_test()
+    """
     if isinstance(groupby, str):
         groupby = [groupby]
-    
+
     df[group_name] = df[groupby].applymap(str).apply(lambda x: '|'.join(x), axis=1)
-    
+
     variables = df[group_name].unique()
     results = []
     iterr = list(combinations(variables, 2))
     if verbose:
         iterr = tqdm(iterr, desc='Computing comparisons')
     for var1, var2 in iterr:
+        if verbose:
+            iterr.set_description(f'Computing comparisons for {var1} vs {var2}')
         group1 = df[df[group_name] == var1][valname]
         group2 = df[df[group_name] == var2][valname]
         if len(group1) < min_group_size or len(group2) < min_group_size:
@@ -69,15 +164,76 @@ def compute_stat_signif(df, groupby='model', valname='rhyme_pred_perc',verbose=D
     results_df = pd.DataFrame(results)
     return results_df.sort_values('effect_size', ascending=False) if len(results_df) > 0 else pd.DataFrame()
 
-def compute_all_stat_signif(df, groupby='period', groupby_stat='model', valname='rhyme_pred_perc',verbose=DEFAULT_VERBOSE):
+def compute_all_stat_signif(df, groupby='period', groupby_stat='model', valname='rhyme_pred_perc', verbose=DEFAULT_VERBOSE):
+    """
+    Compute statistical significance tests for all subgroups within a DataFrame.
+
+    Groups the DataFrame by the specified grouping variable, then runs pairwise statistical
+    comparisons within each subgroup using compute_stat_signif. Useful for analyzing
+    differences across different categories (e.g., periods, sources).
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing the data to analyze
+    groupby : str, default='period'
+        Column name to group by before running statistical comparisons
+    groupby_stat : str or list of str, default='model'
+        Column name(s) to use for within-group statistical comparisons
+    valname : str, default='rhyme_pred_perc'
+        Column name containing the values to compare between groups
+    verbose : bool, default=DEFAULT_VERBOSE
+        Whether to show progress bar during computation
+
+    Returns
+    -------
+    pandas.DataFrame
+        Concatenated DataFrame with statistical comparison results from all subgroups.
+        Each row represents a pairwise comparison within a subgroup, with an additional
+        'groupby' column indicating which subgroup the comparison belongs to.
+
+    Calls
+    -----
+    - compute_stat_signif()
+    """
     o = []
-    for g, gdf in df.groupby(groupby):
-        ogdf = compute_stat_signif(gdf, groupby_stat, valname, verbose=verbose).assign(groupby=g)
+    iterr = tqdm(list(df.groupby(groupby)), desc='Computing all statistical significance tests')
+    for g, gdf in iterr:
+        iterr.set_description(f'Computing statistical significance tests for {groupby}={g}')
+        ogdf = compute_stat_signif(gdf, groupby_stat, valname, verbose=False).assign(groupby=g)
         o.append(ogdf)
-    return pd.concat(o)#.sort_values(['groupby', 'effect_size'], ascending=False).set_index(['groupby', 'comparison']) if len(o) > 0 else pd.DataFrame()
+    return pd.concat(o)  # .sort_values(['groupby', 'effect_size'], ascending=False).set_index(['groupby', 'comparison']) if len(o) > 0 else pd.DataFrame()
 
 
 def get_avgs_df(df, gby=['period', 'source', 'prompt_type'], y='rhyme_pred_perc'):
+    """
+    Calculate summary statistics (mean, standard error, count) for groups in a DataFrame.
+
+    Groups the DataFrame by specified columns and computes descriptive statistics
+    for the target variable, including mean, standard error of the mean, and sample count.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing the data to summarize
+    gby : list of str, default=['period', 'source', 'prompt_type']
+        Column names to group by for computing statistics
+    y : str, default='rhyme_pred_perc'
+        Column name containing the values to compute statistics for
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with summary statistics containing:
+        - Grouping columns (from gby parameter)
+        - mean: Mean value of y for each group
+        - stderr: Standard error of the mean for each group
+        - count: Number of observations in each group
+
+    Calls
+    -----
+    None
+    """
     stats_df = df.groupby(gby)[y].agg(
         mean=np.mean,
         stderr=lambda x: x.std() / np.sqrt(len(x)),
@@ -88,6 +244,44 @@ def get_avgs_df(df, gby=['period', 'source', 'prompt_type'], y='rhyme_pred_perc'
 
 
 def get_pred_stats(predictions, ground_truth, return_counts=False):
+    """
+    Calculate binary classification performance metrics from predictions and ground truth.
+
+    Computes standard classification metrics including precision, recall, F1-score,
+    and accuracy based on the confusion matrix elements.
+
+    Parameters
+    ----------
+    predictions : array-like of bool
+        Predicted binary values (True/False or 1/0)
+    ground_truth : array-like of bool
+        True binary values (True/False or 1/0)
+    return_counts : bool, default=False
+        If True, includes confusion matrix counts in return dictionary.
+        Currently unused but kept for API compatibility.
+
+    Returns
+    -------
+    dict
+        Dictionary containing classification metrics:
+        - f1_score: F1-score (harmonic mean of precision and recall)
+        - precision: True Positives / (True Positives + False Positives)
+        - recall: True Positives / (True Positives + False Negatives)
+        - accuracy: (True Positives + True Negatives) / Total Samples
+        - true_positives: Number of true positive predictions
+        - false_positives: Number of false positive predictions
+        - true_negatives: Number of true negative predictions
+        - false_negatives: Number of false negative predictions
+
+    Raises
+    ------
+    ValueError
+        If predictions and ground_truth have different lengths
+
+    Calls
+    -----
+    None
+    """
     if len(predictions) != len(ground_truth):
         raise ValueError('Predictions and ground truth must have the same length')
     tp = sum(1 for p, gt in zip(predictions, ground_truth) if p and gt)
@@ -110,14 +304,43 @@ def get_pred_stats(predictions, ground_truth, return_counts=False):
     }
 
 def compare_data_by_group(
-    df, 
-    groupby=[], 
-    valname='', 
+    df,
+    groupby=[],
+    valname='',
     min_group_size=100,
     verbose=DEFAULT_VERBOSE,
 ):
+    """
+    Compare data between groups with statistical significance testing.
+
+    Wrapper function that performs statistical comparisons between groups in a DataFrame.
+    Validates inputs and calls compute_stat_signif with appropriate parameters.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing the data to analyze
+    groupby : list of str, default=[]
+        Column name(s) to group by for comparisons. Must be provided.
+    valname : str, default=''
+        Column name containing the values to compare between groups. Must be provided.
+    min_group_size : int, default=100
+        Minimum number of samples required in each group for comparison
+    verbose : bool, default=DEFAULT_VERBOSE
+        Whether to show progress bar during computation
+
+    Returns
+    -------
+    pandas.DataFrame or None
+        DataFrame with comparison results if inputs are valid, None otherwise.
+        See compute_stat_signif() for details on the return format.
+
+    Calls
+    -----
+    - compute_stat_signif()
+    """
     if not groupby or not valname:
         print(f'* Warning: no groupby or valname provided')
         return
-    
+
     return compute_stat_signif(df, groupby=groupby,valname=valname,min_group_size=min_group_size,verbose=verbose)

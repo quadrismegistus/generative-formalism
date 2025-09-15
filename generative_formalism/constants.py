@@ -19,6 +19,7 @@ PATH_STASH_GENAI = f'{PATH_STASH}/genform'
 PATH_STASH_GENAI_RHYME_PROMPTS = f'{PATH_STASH}/genai_rhyme_prompts'
 PATH_STASH_GENAI_RHYME_COMPLETIONS = f'{PATH_STASH}/genai_rhyme_completions'
 PATH_STASH_RHYME = f'{PATH_STASH}/rhyme_for_txt'
+PATH_STASH_RHYTHM = f'{PATH_STASH}/parses_for_txt'
 
 
 # STASH_GENAI_RHYME_PROMPTS = JSONLHashStash(PATH_STASH_GENAI_RHYME_PROMPTS, append_mode=True)
@@ -42,6 +43,7 @@ STASH_GENAI_RHYME_PROMPTS = get_stash(PATH_STASH_GENAI_RHYME_PROMPTS)
 STASH_GENAI_RHYME_COMPLETIONS = get_stash(PATH_STASH_GENAI_RHYME_COMPLETIONS)
 STASH_GENAI = get_stash(PATH_STASH_GENAI)
 STASH_RHYME = get_stash(PATH_STASH_RHYME)
+STASH_RHYTHM = get_stash(PATH_STASH_RHYTHM)
 
 REPLICATE_OVERWRITE = True
 REPLICATE_LLM_DEMO = True
@@ -396,22 +398,41 @@ DATA_NAME_CORPUS_SAMPLE_BY_PERIOD_SUBCORPUS = "corpus_sample_by_period_subcorpus
 DATA_NAME_CORPUS_SAMPLE_BY_RHYME = "corpus_sample_by_rhyme"
 DATA_NAME_CORPUS_SAMPLE_BY_SONNET_PERIOD = "corpus_sample_by_sonnet_period"
 
+# Table files
+DATA_NAME_TABLE_PERIOD_COUNTS = "table.period_counts.tex"
+DATA_NAME_TABLE_PERIOD_SUBCORPUS_COUNTS = "table.period_subcorpus_counts.tex"
+DATA_NAME_TABLE_SONNET_PERIOD_COUNTS = "table.sonnet_period_counts.tex"
 
-def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False):
+# Rhyme completion data files
+DATA_NAME_GENAI_RHYME_COMPLETIONS = "genai_rhyme_completions"
+DATA_NAME_RHYME_DATA_BY_RHYME = "rhyme_data_by_rhyme"
+DATA_NAME_RHYME_DATA_BY_PERIOD = "rhyme_data_by_period"
+DATA_NAME_RHYME_DATA_BY_PERIOD_SUBCORPUS = "rhyme_data_by_period_subcorpus"
+DATA_NAME_RHYME_DATA_BY_SONNET_PERIOD = "rhyme_data_by_sonnet_period"
+
+
+def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False, as_regenerated=False, is_figure=False):
     def has_ext(path):
         return bool(os.path.splitext(path)[1])
     
     if not has_ext(data_name):
         data_name = data_name + ext
     
-    if as_in_paper and as_replicated:
-        data_fldr = "data_as_replicated/using_sample_as_in_paper"
+    if as_regenerated:
+        data_fldr = "data_as_regenerated"
     elif as_replicated:
-        data_fldr = "data_replicated/using_sample_as_replicated"
+        data_fldr = "data_as_replicated"
     elif as_in_paper:
         data_fldr = "data_as_in_paper"
     else:
         data_fldr = "tmp"
+
+    if is_figure:
+        data_fldr = f"{data_fldr}/figures"
+    
+    # Handle tex files by adding tex subdirectory
+    if data_name.endswith('.tex'):
+        data_name = os.path.join('tex', data_name)
     
     return os.path.join(
         PATH_DATA,
@@ -420,3 +441,19 @@ def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False):
     )
 
 
+
+METER_OPTS = {
+    'constraints': {
+        'w_peak': 1.0,
+        'w_stress': 1.0,
+        's_unstress': 1.0,
+        'unres_across': 1.0,
+        'unres_within': 1.0,
+        'foot_size': 1.0
+    },
+    'max_s': 2,
+    'max_w': 2,
+    'resolve_optionality': True,
+    'exhaustive': False,
+    'parse_unit': 'line'
+}

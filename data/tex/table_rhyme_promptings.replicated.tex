@@ -1,0 +1,27 @@
+\begin{table}[H]
+  \centering
+  \small
+  \singlespacing
+  \begin{tabular}{llrr}
+  \toprule
+   &  & \# Poems & \# per model (avg.) \\
+  Prompt type & Prompt &  &  \\
+  \midrule
+  \multirow[t]{4}{*}{Rhymed} & Write a poem (with 20+ lines) that rhymes. & 2 & 1 \\
+   & Write a poem in heroic couplets. & 2 & 1 \\
+   & Write a rhyming poem. & 2 & 1 \\
+   & Write a rhymed poem in the style of Shakespeare's sonnets. & 1 & 1 \\
+  \cline{1-4}
+  \multirow[t]{4}{*}{Unrhymed} & Write a long poem that does NOT rhyme. & 1 & 1 \\
+   & Write a poem (with 20+ lines) that does NOT rhyme. & 1 & 1 \\
+   & Write a poem in blank verse. & 1 & 1 \\
+   & Write a poem that does NOT rhyme. & 9 & 4 \\
+  \cline{1-4}
+  \multirow[t]{3}{*}{Rhyme unspecified} & Write a long poem. & 1 & 1 \\
+   & Write a poem in stanzas of 4 lines each. & 1 & 1 \\
+   & Write a poem. & 1 & 1 \\
+  \bottomrule
+  \end{tabular}
+  \caption{Number of poems generated for each prompt.}
+  \label{tab:num_poems_rhyme_promptings}
+\end{table}

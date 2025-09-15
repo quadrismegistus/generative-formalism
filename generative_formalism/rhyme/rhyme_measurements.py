@@ -106,6 +106,66 @@ def get_rhyme_data_for(get_func, output_path=None, overwrite=False, with_sample=
     else:
         return df_rhyme_data
 
+
+
+
+
+
+
+def get_rhyme_data_for_corpus_sampled_by(sample_by, as_in_paper=True, as_replicated=False, output_path=None, **kwargs):
+    """Get rhyme data for corpus sampled by specified criteria.
+
+    Loads a corpus sample using the specified criteria and computes rhyme
+    measurements for all poems in the sample. Results can be cached to disk
+    for efficient reuse.
+
+    Parameters
+    ----------
+    sample_by : str
+        Sampling criteria ('period', 'period_subcorpus', 'rhyme', 'sonnet_period').
+    as_in_paper : bool, default=True
+        If True, use precomputed sample from paper.
+    as_replicated : bool, default=False
+        If True, use replicated sample.
+    output_path : str, optional
+        Path to save rhyme data. If None, uses default path based on sample_by.
+    **kwargs
+        Additional arguments passed to get_rhyme_data_for().
+
+    Returns
+    -------
+    Rhyme analysis data for the sampled corpus.
+
+    Calls
+    -----
+    - get_chadwyck_corpus_sampled_by(...) [to load the sample]
+    - get_rhyme_data_for(get_sample_func, output_path, **kwargs) [to compute rhyme data]
+    """
+    # Map sample_by to output path if not provided
+    output_path_map = {
+        'rhyme': PATH_RHYME_DATA_FOR_PAPER_SAMPLE_BY_RHYME if as_in_paper else PATH_RHYME_DATA_FOR_REPLICATED_SAMPLE_BY_RHYME,
+        'period': PATH_RHYME_DATA_FOR_PAPER_SAMPLE_BY_PERIOD if as_in_paper else PATH_RHYME_DATA_FOR_REPLICATED_SAMPLE_BY_PERIOD,
+        'period_subcorpus': PATH_RHYME_DATA_FOR_PAPER_SAMPLE_BY_PERIOD_SUBCORPUS if as_in_paper else PATH_RHYME_DATA_FOR_REPLICATED_SAMPLE_BY_PERIOD_SUBCORPUS,
+        'sonnet_period': PATH_RHYME_DATA_FOR_PAPER_SAMPLE_BY_SONNET_PERIOD if as_in_paper else PATH_RHYME_DATA_FOR_REPLICATED_SAMPLE_BY_SONNET_PERIOD,
+    }
+
+    output_path = output_path if output_path else output_path_map.get(sample_by, None)
+
+    def get_sample_func():
+        return get_chadwyck_corpus_sampled_by(sample_by, as_in_paper=as_in_paper, as_replicated=as_replicated)
+
+    return get_rhyme_data_for(get_sample_func, output_path, **kwargs)
+
+
+
+
+
+
+
+
+
+
+
 def compare_rhyme_data_by_group(
     df, 
     groupby=['period'], 
@@ -218,3 +278,7 @@ def plot_predicted_rhyme_avgs(
     )
     
     return plot
+
+
+
+    

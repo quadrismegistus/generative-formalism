@@ -455,6 +455,8 @@ def df_to_latex_table(
                 save_path = f'{save_latex_to}.{save_latex_to_suffix}'
         else:
             save_path = save_latex_to
+        if not save_path.endswith('.tex'):
+            save_path += '.tex'
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         with open(save_path, 'w') as f:
             if verbose:
@@ -564,7 +566,7 @@ def documentation(func, docstring=True, signature=False, source=False):
         if pretty_sig == bad_sig:
             pretty_sig = short_sig
         
-        markdown_content = f"**`{func.__name__}`**"
+        markdown_content = f"##### `{func.__name__}`"
         
         if docstring:
             markdown_content += f"""
@@ -603,3 +605,11 @@ def head(df, n=5, verbose=True):
     if verbose:
         printm(f'*Dataframe with {df.shape[0]:,} rows and  {df.shape[1]:,} columns*')
     return df.head(n)
+
+
+def display_img(path):
+    try:
+        from IPython.display import Image
+        return Image(path)
+    except (NameError, ImportError):
+        pass

@@ -135,10 +135,28 @@ def get_chadwyck_corpus_metadata(
 
 
 def download_chadwyck_corpus_metadata(overwrite=False, verbose=False):
-    """Download and unzip corpus metadata if the local file is missing.
+    """Download and unzip the Chadwyck-Healey corpus metadata file.
+
+    Downloads the metadata CSV file from the configured URL if it doesn't exist
+    locally or if overwrite=True. The downloaded file is unzipped to the
+    expected location for subsequent loading.
 
     Parameters
-    - overwrite: If True, re-download even when the file exists.
+    ----------
+    overwrite : bool, default=False
+        If True, re-download and unzip even if the file already exists.
+    verbose : bool, default=False
+        If True, print progress messages during download and unzip operations.
+
+    Returns
+    -------
+    None
+        The function modifies files on disk but doesn't return a value.
+
+    Calls
+    -----
+    - download_file(URL_CHADWYCK_HEALEY_METADATA, PATH_CHADWYCK_HEALEY_METADATA_ZIP)
+    - unzip_file(PATH_CHADWYCK_HEALEY_METADATA_ZIP, PATH_CHADWYCK_HEALEY_METADATA)
     """
     if URL_CHADWYCK_HEALEY_METADATA and (overwrite or not os.path.exists(PATH_CHADWYCK_HEALEY_METADATA)):
         PATH_CHADWYCK_HEALEY_METADATA_ZIP = PATH_CHADWYCK_HEALEY_METADATA+'.zip'
@@ -150,10 +168,29 @@ def download_chadwyck_corpus_metadata(overwrite=False, verbose=False):
         unzip_file(PATH_CHADWYCK_HEALEY_METADATA_ZIP, PATH_CHADWYCK_HEALEY_METADATA)
 
 def download_chadwyck_corpus_txt(overwrite=False, verbose=False):
-    """Download and unzip corpus texts if the local directory is missing.
+    """Download and unzip the Chadwyck-Healey corpus text files.
+
+    Downloads the corpus text files (individual poem text files) from the
+    configured URL if the local directory doesn't exist or if overwrite=True.
+    The downloaded ZIP file is unzipped to create the directory structure
+    containing individual poem text files.
 
     Parameters
-    - overwrite: If True, re-download even when the directory exists.
+    ----------
+    overwrite : bool, default=False
+        If True, re-download and unzip even if the directory already exists.
+    verbose : bool, default=False
+        If True, print progress messages during download and unzip operations.
+
+    Returns
+    -------
+    None
+        The function modifies files on disk but doesn't return a value.
+
+    Calls
+    -----
+    - download_file(URL_CHADWYCK_HEALEY_TXT, PATH_CHADWYCK_HEALEY_TXT_ZIP)
+    - unzip_file(PATH_CHADWYCK_HEALEY_TXT_ZIP, PATH_CHADWYCK_HEALEY_TXT)
     """
     if URL_CHADWYCK_HEALEY_TXT and (overwrite or not os.path.exists(PATH_CHADWYCK_HEALEY_TXT)):
         PATH_CHADWYCK_HEALEY_TXT_ZIP = PATH_CHADWYCK_HEALEY_TXT+'.zip'
@@ -169,14 +206,27 @@ def download_chadwyck_corpus_txt(overwrite=False, verbose=False):
 
 
 def get_txt(id, clean_poem=True) -> str:
-    """Load a poem's raw text by `id` from disk.
+    """Load a poem's text content from the Chadwyck-Healey corpus by its ID.
+
+    Reads the text file for the specified poem ID from the local corpus directory.
+    Optionally applies text cleaning/normalization to the loaded content.
 
     Parameters
-    - id: Chadwyck-Healey poem identifier (path-like under the texts root).
-    - clean_poem: If True, apply `clean_poem_str` to normalize the text.
+    ----------
+    id : str
+        Chadwyck-Healey poem identifier used as the filename (without .txt extension).
+    clean_poem : bool, default=True
+        If True, apply text cleaning/normalization using clean_poem_str().
 
     Returns
-    - The poem text as a string (possibly cleaned), or an empty string if missing.
+    -------
+    str
+        The poem's text content as a string. Returns empty string if the file
+        doesn't exist or can't be read.
+
+    Calls
+    -----
+    - clean_poem_str(out) [if clean_poem=True]
     """
     fn = os.path.join(PATH_CHADWYCK_HEALEY_TXT, id) + '.txt'
     if os.path.exists(fn):
@@ -188,14 +238,32 @@ def get_txt(id, clean_poem=True) -> str:
     return ""
 
 def get_chadwyck_corpus_texts(df_meta, clean_poem=True, verbose=False) -> list[str]:
-    """Vectorized helper to load poem texts for all `id`s in `df_meta`.
+    """Load poem text content for all poems in the metadata DataFrame.
+
+    Efficiently loads text content for multiple poems by iterating through
+    the metadata DataFrame and calling get_txt() for each poem ID.
+    Shows progress using tqdm for large datasets.
 
     Parameters
-    - df_meta: Metadata DataFrame with index `id`.
-    - clean_poem: If True, clean each poem via `clean_poem_str`.
+    ----------
+    df_meta : pd.DataFrame
+        Metadata DataFrame with poem IDs as index. Should contain an 'id' column
+        with the Chadwyck-Healey poem identifiers.
+    clean_poem : bool, default=True
+        If True, apply text cleaning to each poem using clean_poem_str().
+    verbose : bool, default=False
+        If True, print progress information during loading.
 
     Returns
-    - list[str] aligned with `df_meta.index`.
+    -------
+    list[str]
+        List of poem text strings in the same order as df_meta.index.
+        Empty strings are returned for poems that cannot be loaded.
+
+    Calls
+    -----
+    - get_txt(id, clean_poem=clean_poem) [for each poem ID in df_meta]
+    - tqdm(df_meta.reset_index().id, desc='  ') [for progress display]
     """
     if verbose:
         print(f'* Loading {len(df_meta)} texts')
@@ -242,241 +310,29 @@ def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, downl
     return df_meta
 
 
-def sample_chadwyck_corpus(
-        df_corpus,
-        sample_by,
-        min_sample_n=MIN_SAMPLE_N,
-        max_sample_n=MAX_SAMPLE_N,
-        prefer_min_id_hash=False,
-        ) -> pd.DataFrame:
-    """Deterministically sample `df_corpus` by one or more grouping keys.
-
-    Rules
-    - Keep only groups with at least `min_sample_n` items (if provided).
-    - Within each group, sort by `id_hash` and take the first `max_sample_n` rows
-      (if provided). This ensures stable sampling across runs.
-
-    Parameters
-    - df_corpus: Corpus DataFrame (e.g., from `get_chadwyck_corpus`).
-    - sample_by: Column name or list of names to group by.
-    - min_sample_n, max_sample_n: Group size constraints.
-
-    Returns
-    - pd.DataFrame containing the sampled rows.
-    """
-
-    if not len(df_corpus):
-        print(f'* Warning: No corpus to sample')
-        return pd.DataFrame()
-
-    print(f'* Sampling corpus by {sample_by} (min {min_sample_n}, max {max_sample_n})')
-    print(f'* Original sample size: {len(df_corpus)}')
-    # sort by id hash
-    df = df_corpus.sort_values('id_hash')
-
-    sample_by = [sample_by] if isinstance(sample_by, str) else sample_by
-    if min_sample_n:
-        df = df.groupby(sample_by).filter(lambda x: len(x) >= min_sample_n)
-
-    if max_sample_n:
-        if prefer_min_id_hash:
-            df = df.sort_values('id_hash')
-        else:
-            df = df.sample(frac=1)
-        
-        df = df.sort_values('id_hash').groupby(sample_by).head(max_sample_n)
-    
-    print(f'* Final sample size: {len(df)}\n')
-    s=df.groupby(sample_by).size()
-    s.name = '/'.join(sample_by)
-    describe_qual(s, count=False)
-    return df
-
-
-
-    
-
-# def get_chadwyck
-    
-def get_chadwyck_corpus_sampled_by_rhyme_as_in_paper() -> pd.DataFrame:
-    """Load the rhyme-based sample used in the paper (precomputed)."""
-    return pd.read_csv(PATH_SAMPLE_RHYMES_IN_PAPER).fillna('').set_index('id').sort_values('id_hash')
-
-def get_chadwyck_corpus_sampled_by_period_as_in_paper(verbose=False, display=False) -> pd.DataFrame:
-    """Load the period-based sample used in the paper (precomputed)."""
-    odf = pd.read_csv(PATH_SAMPLE_PERIOD_IN_PAPER).fillna('').set_index('id').sort_values('id_hash')
-    if display:
-        display_period_subcorpus_tables(odf, save_latex_to=PATH_TEX_PERIOD_COUNTS, verbose=verbose)
-    return odf
-
-
-def get_chadwyck_corpus_sampled_by_period_subcorpus_as_in_paper(display=False) -> pd.DataFrame:
-    """Load the period×subcorpus sample used in the paper and optionally display a table."""
-    odf = pd.read_csv(PATH_SAMPLE_PERIOD_SUBCORPUS_IN_PAPER).fillna('').set_index('id').sort_values('id_hash')
-    if display:
-        display_period_subcorpus_tables(odf)
-    return odf
-
-def get_chadwyck_corpus_sampled_by_sonnet_period_as_in_paper(verbose=False, display=False) -> pd.DataFrame:
-    """Load the sonnet-based sample used in the paper (precomputed)."""
-    odf = pd.read_csv(PATH_SAMPLE_SONNET_IN_PAPER).fillna('').set_index('id').sort_values('id_hash')
-    if display:
-        display_period_subcorpus_tables(odf, save_latex_to=PATH_TEX_SONNET_PERIOD_COUNTS, verbose=verbose)
-    return odf
-
-def display_period_subcorpus_tables(df, **kwargs):
-    kwargs['return_display'] = True
-    """Display summary tables for a sampled DataFrame (IPython rich display if available)."""
-    try_display(get_period_subcorpus_table(df, **kwargs))
 
 
 
 
-# Samplers
-
-def gen_chadwyck_corpus_sampled_by_rhyme() -> pd.DataFrame:
-    """Generate a rhyme-stratified sample from the full corpus."""
-    df_corpus = get_chadwyck_corpus()
-    df_corpus = df_corpus[df_corpus.rhyme.isin({'y','n'})]
-    df = sample_chadwyck_corpus(
-        df_corpus,
-        sample_by='rhyme',
-    )
-    return df
-
-def gen_chadwyck_corpus_sampled_by_period(display=False) -> pd.DataFrame:
-    """Generate a period-stratified sample from the full corpus."""
-    df_corpus = get_chadwyck_corpus()
-    df = sample_chadwyck_corpus(
-        df_corpus,
-        sample_by='period',
-    )
-
-    if display:
-        try:
-            from IPython.display import display
-            img = get_period_subcorpus_table(odf, return_display=True)
-            display(img)
-        except (NameError, ImportError):
-            print(f'* Warning: Could not display image')
-            pass
-    return df
-
-def gen_chadwyck_corpus_sampled_by_period_subcorpus() -> pd.DataFrame:
-    """Generate a period×subcorpus-stratified sample from the full corpus."""
-    df_corpus = get_chadwyck_corpus()
-    df = sample_chadwyck_corpus(
-        df_corpus,
-        sample_by=['period','subcorpus'],
-    )
-    return df
-
-def gen_chadwyck_corpus_sampled_by_sonnet_period() -> pd.DataFrame:
-    """Generate a sonnet-stratified sample from the full corpus."""
-    df_corpus = get_chadwyck_corpus()
-    # Filter for sonnets based on genre metadata and 14-line poems
-    df_sonnets = df_corpus[
-        (df_corpus.genre.str.contains('sonnet', case=False, na=False)) |
-        (df_corpus.title.str.contains('sonnet', case=False, na=False))
-    ]
-    # Further filter by 14 lines (traditional sonnet length)
-    df_sonnets = df_sonnets[df_sonnets.num_lines == 14]
-    df = sample_chadwyck_corpus(
-        df_sonnets,
-        sample_by='period',  # Sample sonnets by period for diversity
-    )
-    return df
-
-def get_chadwyck_corpus_sampled_by_rhyme(force=False) -> pd.DataFrame:
-    """Load or generate rhyme-stratified sample; cache on disk at `PATH_SAMPLE_RHYMES_REPLICATED`."""
-    path = PATH_SAMPLE_RHYMES_REPLICATED
-    if force or not os.path.exists(path):
-        print(f'* Generating rhyme sample')
-        odf = gen_chadwyck_corpus_sampled_by_rhyme()
-        if len(odf):
-            save_sample(odf, path, overwrite=True)
-    else:
-        print(f'* Loading rhyme sample from {path}')
-        odf = pd.read_csv(path).set_index('id').sort_values('id_hash')
-    return odf
-
-def get_chadwyck_corpus_sampled_by_period(force=False) -> pd.DataFrame:
-    """Load or generate period-stratified sample; cache on disk at `PATH_SAMPLE_PERIOD_REPLICATED`."""
-    path = PATH_SAMPLE_PERIOD_REPLICATED
-    if force or not os.path.exists(path):
-        print(f'* Generating period sample')
-        odf = gen_chadwyck_corpus_sampled_by_period()
-        if len(odf):
-            save_sample(odf, path, overwrite=True)
-    else:
-        print(f'* Loading period sample from {path}')
-        odf = pd.read_csv(path).set_index('id').sort_values('id_hash')
-    return odf
-
-def get_chadwyck_corpus_sampled_by_period_subcorpus(force=False, display=False) -> pd.DataFrame:
-    """Load or generate period×subcorpus sample; cache on disk at `PATH_SAMPLE_PERIOD_SUBCORPUS_REPLICATED`."""
-    path = PATH_SAMPLE_PERIOD_SUBCORPUS_REPLICATED
-    if force or not os.path.exists(path):
-        print(f'* Generating period subcorpus sample')
-        odf = gen_chadwyck_corpus_sampled_by_period_subcorpus()
-        if len(odf):
-            save_sample(odf, path, overwrite=True)
-    else:
-        print(f'* Loading period subcorpus sample from {path}')
-        odf = pd.read_csv(path).set_index('id').sort_values('id_hash')
-    if display:
-        try:
-            from IPython.display import display
-            img = get_period_subcorpus_table(odf, return_display=True)
-            display(img)
-        except (NameError, ImportError):
-            print(f'* Warning: Could not display image')
-            pass
-    return odf
-
-def get_chadwyck_corpus_sampled_by_sonnet_period(force=False) -> pd.DataFrame:
-    """Load or generate sonnet-stratified sample; cache on disk at `PATH_SAMPLE_SONNET_REPLICATED`."""
-    path = PATH_SAMPLE_SONNET_REPLICATED
-    if force or not os.path.exists(path):
-        print(f'* Generating sonnet sample')
-        odf = gen_chadwyck_corpus_sampled_by_sonnet_period()
-        if len(odf):
-            save_sample(odf, path, overwrite=True)
-    else:
-        print(f'* Loading sonnet sample from {path}')
-        odf = pd.read_csv(path).set_index('id').sort_values('id_hash')
-    return odf
 
 
-def get_chadwyck_corpus_sampled_by_rhyme_as_replicated(overwrite=False) -> pd.DataFrame:
-    """Convenience wrapper to compute or load rhyme-stratified sample (replication)."""
-    df_smpl = get_chadwyck_corpus_sampled_by_rhyme(force=overwrite)
-    return df_smpl
 
-def get_chadwyck_corpus_sampled_by_period_as_replicated(overwrite=False, display=False, **kwargs) -> pd.DataFrame:
-    """Convenience wrapper to compute or load period-stratified sample (replication)."""
-    df_smpl = get_chadwyck_corpus_sampled_by_period(force=overwrite)
-    if display:
-        display_period_subcorpus_tables(df_smpl, save_latex_to=PATH_TEX_PERIOD_COUNTS.replace('.tex', f'.{REPLICATED_SUFFIX}.tex'), **kwargs)
-    return df_smpl
-
-def get_chadwyck_corpus_sampled_by_period_subcorpus_as_replicated(overwrite=False, display=False) -> pd.DataFrame:
-    """Convenience wrapper to compute or load period×subcorpus sample (replication)."""
-    df_smpl = get_chadwyck_corpus_sampled_by_period_subcorpus(force=overwrite)
-    if display:
-        display_period_subcorpus_tables(df_smpl)
-    return df_smpl
-
-def get_chadwyck_corpus_sampled_by_sonnet_period_as_replicated(overwrite=False, display=False, verbose=False) -> pd.DataFrame:
-    """Convenience wrapper to compute or load sonnet-stratified sample (replication)."""
-    df_smpl = get_chadwyck_corpus_sampled_by_sonnet_period(force=overwrite)
-    if display:
-        display_period_subcorpus_tables(df_smpl, save_latex_to=PATH_TEX_SONNET_PERIOD_COUNTS.replace('.tex', f'.{REPLICATED_SUFFIX}.tex'), verbose=verbose)
-    return df_smpl
 
 def check_paths():
     """Check if the paths to the Chadwyck-Healey corpus and metadata are set and exist.
-    Uses constants from `constants.py`.
+
+    Validates the configuration and availability of corpus files and URLs.
+    Prints status indicators for each required path and URL.
+
+    Returns
+    -------
+    None
+        Prints status information but doesn't return a value.
+
+    Calls
+    -----
+    - os.path.exists(PATH_CHADWYCK_HEALEY_TXT)
+    - os.path.exists(PATH_CHADWYCK_HEALEY_METADATA)
     """
     # Get the Chadwyck-Healey corpus path
     print(f"""{"✓" if PATH_CHADWYCK_HEALEY_TXT and os.path.exists(PATH_CHADWYCK_HEALEY_TXT) else "X"} Chadwyck-Healey corpus path: {PATH_CHADWYCK_HEALEY_TXT}""")
@@ -487,8 +343,34 @@ def check_paths():
     print(f"""{"✓" if URL_CHADWYCK_HEALEY_TXT and URL_CHADWYCK_HEALEY_TXT else "X"} Corpus text file URL set in environment (.env or shell)""")
 
 
+
+
 def describe_corpus(dfx: pd.DataFrame) -> pd.DataFrame:
-    """Print high-level descriptive stats of a corpus DataFrame and return it."""
+    """Print high-level descriptive statistics of a corpus DataFrame and return it.
+
+    Generates a comprehensive summary of the corpus including breakdowns by
+    historical period, subcorpus, period×subcorpus combinations, and rhyme
+    annotations. Useful for understanding the composition and distribution
+    of poems in a sample.
+
+    Parameters
+    ----------
+    dfx : pd.DataFrame
+        Corpus DataFrame to analyze, should contain columns for 'period',
+        'subcorpus', and 'rhyme'.
+
+    Returns
+    -------
+    pd.DataFrame
+        The same DataFrame that was passed in (unchanged).
+
+    Calls
+    -----
+    - describe_qual(dfx.period) [for period breakdown]
+    - describe_qual(dfx.subcorpus) [for subcorpus breakdown]
+    - describe_qual_grouped(dfx, ['period', 'subcorpus']) [for cross-tabulation]
+    - describe_qual(dfx.rhyme) [for rhyme distribution]
+    """
     printm(f'----')
 
     printm(f'#### Historical period breakdown (from author birth year)')
@@ -502,7 +384,7 @@ def describe_corpus(dfx: pd.DataFrame) -> pd.DataFrame:
     # printm(f'#### Historical period breakdown (from metadata)')
     # describe_qual(dfx.period_meta)
     # printm(f'----')
-    
+
 
     printm(f'#### Historical period + subcorpus breakdown')
     describe_qual_grouped(dfx, ['period', 'subcorpus'])
@@ -522,166 +404,3 @@ def describe_corpus(dfx: pd.DataFrame) -> pd.DataFrame:
 
     printm(f'#### Metadata')
     return dfx
-
-
-
-def get_period_subcorpus_table(df_smpl, save_latex_to=PATH_TEX_PERIOD_SUBCORPUS_COUNTS, save_latex_to_suffix='tmp',return_display=False, table_num=None, verbose=False, **kwargs):
-    """Build a period×subcorpus summary table and optionally save LaTeX.
-
-    Parameters
-    - df_smpl: Sampled DataFrame containing `period`, `subcorpus`, `author`, `id`.
-    - save_latex_to: Base path for LaTeX/table image output; if falsy, skip saving.
-    - save_latex_to_suffix: Filename suffix for differentiation.
-    - return_display: If True, return a display object suitable for notebooks.
-    - table_num: Optional table number for LaTeX captioning.
-
-    Returns
-    - A formatted DataFrame (if not returning display object) or a display/image object.
-    """
-    df_meta = get_chadwyck_corpus_metadata(verbose=verbose)
-    
-    # Build summary table using sample groupings (df_smpl)
-    rows = []
-    for (period, subcorpus), gdf in df_smpl.groupby(['period', 'subcorpus']):
-        meta_q = df_meta.query(f'subcorpus=="{subcorpus}" & period=="{period}"')
-        rows.append({
-            'period': period,
-            'subcorpus': subcorpus,
-            'num_poets_total': meta_q.author.nunique(),
-            'num_poets': gdf.author.nunique(),
-            'num_poems_total': len(meta_q),
-            'num_poems': len(gdf),
-        })
-
-    df_table = pd.DataFrame(rows).set_index(['period', 'subcorpus']).sort_index()
-
-    # convert numbers to comma'd strings
-    def format_number(x):
-        x = int(x)
-        return f'{x:,.0f}'
-
-    df_formatted = df_table.applymap(format_number)
-
-    df_formatted.rename_axis(['Period', 'Subcorpus'], inplace=True)
-    df_formatted.columns = ['# Poets (corpus)', '# Poets (sample)', '# Poems (corpus)', '# Poems (sample)']
-
-    # Build grouped LaTeX tabular matching the requested style (no outer table here)
-    def _escape_latex_text(s):
-        return str(s).replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
-
-    periods = sorted({idx[0] for idx in df_formatted.index})
-
-    tabular_lines = []
-    tabular_lines.append('\\begin{tabular}{llrrrr}')
-    tabular_lines.append('\\toprule')
-    tabular_lines.append('& & \\multicolumn{2}{c}{Corpus} & \\multicolumn{2}{c}{Sample} \\\\')
-    tabular_lines.append('\\cmidrule(lr){3-4} \\cmidrule(lr){5-6}')
-    tabular_lines.append('Period & Subcorpus & \\# Poems & \\# Poets & \\# Poems & \\# Poets \\\\')
-    tabular_lines.append('\\midrule')
-
-    for period in periods:
-        subdf = df_formatted.xs(period, level=0)
-        subcorp_order = sorted(list(subdf.index))
-        n = len(subcorp_order)
-        for i, subcorpus in enumerate(subcorp_order):
-            row = subdf.loc[subcorpus]
-            period_disp = _escape_latex_text(period).replace('-', '--') if i == 0 else ''
-            sub_disp = _escape_latex_text(subcorpus)
-            vals = [
-                row['# Poems (corpus)'],
-                row['# Poets (corpus)'],
-                row['# Poems (sample)'],
-                row['# Poets (sample)'],
-            ]
-            if i == 0:
-                tabular_lines.append(f'\\multirow[t]{{{n}}}{{*}}{{{period_disp}}} & {sub_disp} & {vals[0]} & {vals[1]} & {vals[2]} & {vals[3]} \\\\')
-            else:
-                tabular_lines.append(f' & {sub_disp} & {vals[0]} & {vals[1]} & {vals[2]} & {vals[3]} \\\\')
-        tabular_lines.append('\\cline{1-6}')
-
-    # replace trailing cline with bottomrule
-    if tabular_lines[-1] == '\\cline{1-6}':
-        tabular_lines[-1] = '\\bottomrule'
-    else:
-        tabular_lines.append('\\bottomrule')
-
-    tabular_lines.append('\\end{tabular}')
-
-    tabular_str = '\n'.join(tabular_lines)
-
-    # Use generic table wrapper/saver
-    if save_latex_to:
-        _ = df_to_latex_table(
-            inner_latex=tabular_str,
-            save_latex_to=save_latex_to,
-            save_latex_to_suffix=save_latex_to_suffix,
-            table_num=table_num,
-            caption='Number of poets and poems in the Chadwyck-Healey corpus and sample.',
-            label='tab:num_poems_corpus',
-            position='t',
-            center=True,
-            size='\\small',
-            resize_to_textwidth=True,
-            return_display=return_display,
-            verbose=verbose,
-        )
-        if return_display and _ is not None:
-            return _
-
-    return df_formatted
-
-
-def get_period_subcorpus_table_as_in_paper(df_smpl=None, save_latex=True, return_display=False, table_num=TABLE_NUM_PERIOD_SUBCORPUS_COUNTS):
-    """Recreate the period×subcorpus table exactly as in the paper."""
-    df_smpl = df_smpl if df_smpl is not None else get_chadwyck_corpus_sampled_by_period_subcorpus_as_in_paper()
-    return get_period_subcorpus_table(
-        df_smpl,
-        save_latex_to_suffix=PAPER_REGENERATED_SUFFIX,
-        return_display=return_display,
-        table_num=table_num,
-    )
-
-def get_period_subcorpus_table_as_replicated(save_latex=None, return_display=False, table_num=TABLE_NUM_PERIOD_SUBCORPUS_COUNTS):
-    """Generate the period×subcorpus table for the replication sample."""
-    df_smpl = get_chadwyck_corpus_sampled_by_period_subcorpus_as_replicated()
-    return get_period_subcorpus_table(
-        df_smpl,
-        save_latex_to_suffix=REPLICATED_SUFFIX,
-        return_display=return_display,
-        table_num=table_num,
-    )
-
-
-
-def get_rhyme_data_for_corpus_sampled_by_rhyme_as_in_paper(output_path=None, **kwargs):
-    output_path = output_path if output_path else PATH_RHYME_DATA_FOR_REPLICATED_SAMPLE_BY_RHYME
-    return get_rhyme_data_for(get_chadwyck_corpus_sampled_by_rhyme_as_in_paper, output_path, **kwargs)
-
-def get_rhyme_data_for_corpus_sampled_by_rhyme_as_replicated(output_path=None, **kwargs):
-    output_path = output_path if output_path else PATH_RHYME_DATA_FOR_REPLICATED_SAMPLE_BY_RHYME
-    return get_rhyme_data_for(get_chadwyck_corpus_sampled_by_rhyme_as_replicated, output_path, **kwargs)
-
-    
-def get_rhyme_data_for_corpus_sampled_by_period_as_in_paper(output_path=None, **kwargs):
-    output_path = output_path if output_path else PATH_RHYME_DATA_FOR_PAPER_SAMPLE_BY_PERIOD
-    return get_rhyme_data_for(get_chadwyck_corpus_sampled_by_period_as_in_paper, output_path=output_path, **kwargs)
-
-def get_rhyme_data_for_corpus_sampled_by_period_as_replicated(output_path=None, **kwargs):
-    output_path = output_path if output_path else PATH_RHYME_DATA_FOR_REPLICATED_SAMPLE_BY_PERIOD
-    return get_rhyme_data_for(get_chadwyck_corpus_sampled_by_period_as_replicated, output_path=output_path, **kwargs)
-
-def get_rhyme_data_for_corpus_sampled_by_period_subcorpus_as_in_paper(output_path=None, **kwargs):
-    output_path = output_path if output_path else PATH_RHYME_DATA_FOR_PAPER_SAMPLE_BY_PERIOD_SUBCORPUS
-    return get_rhyme_data_for(get_chadwyck_corpus_sampled_by_period_subcorpus_as_in_paper, output_path=output_path, **kwargs)
-
-def get_rhyme_data_for_corpus_sampled_by_period_subcorpus_as_replicated(output_path=None, **kwargs):
-    output_path = output_path if output_path else PATH_RHYME_DATA_FOR_REPLICATED_SAMPLE_BY_PERIOD_SUBCORPUS
-    return get_rhyme_data_for(get_chadwyck_corpus_sampled_by_period_subcorpus_as_replicated, output_path=output_path, **kwargs)
-
-def get_rhyme_data_for_corpus_sampled_by_sonnet_period_as_in_paper(output_path=None, **kwargs):
-    output_path = output_path if output_path else PATH_RHYME_DATA_FOR_PAPER_SAMPLE_BY_SONNET_PERIOD
-    return get_rhyme_data_for(get_chadwyck_corpus_sampled_by_sonnet_period_as_in_paper, output_path=output_path, **kwargs)
-
-def get_rhyme_data_for_corpus_sampled_by_sonnet_period_as_replicated(output_path=None, **kwargs):
-    output_path = output_path if output_path else PATH_RHYME_DATA_FOR_REPLICATED_SAMPLE_BY_SONNET_PERIOD
-    return get_rhyme_data_for(get_chadwyck_corpus_sampled_by_sonnet_period_as_replicated, output_path=output_path, **kwargs)

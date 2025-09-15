@@ -2,7 +2,7 @@ from . import *
 
 
 def preprocess_legacy_genai_rhyme_completions(
-    path=PATH_GENAI_RHYME_COMPLETIONS, overwrite=False, first_n_lines=FIRST_N_LINES,verbose=DEFAULT_VERBOSE
+    path=None, overwrite=False, first_n_lines=FIRST_N_LINES, verbose=DEFAULT_VERBOSE
 ):
     """Preprocess legacy generative AI rhyme completions from raw pickle files.
 
@@ -11,34 +11,47 @@ def preprocess_legacy_genai_rhyme_completions(
     It also generates unique IDs for generated poems and provides statistics
     about the dataset.
 
-    Args:
-        path (str, optional): Path to save the processed CSV file.
-            Defaults to PATH_GENAI_RHYME_COMPLETIONS.
-        overwrite (bool, optional): Whether to overwrite existing processed data.
-            Defaults to False.
-        first_n_lines (int, optional): Number of first lines from original poems
-            to consider. Defaults to FIRST_N_LINES.
+    Parameters
+    ----------
+    path : str, optional
+        Path to save the processed CSV file. If None, uses default path
+        from get_path(DATA_NAME_GENAI_RHYME_COMPLETIONS).
+    overwrite : bool, default=False
+        Whether to overwrite existing processed data.
+    first_n_lines : int, default=FIRST_N_LINES
+        Number of first lines from original poems to consider.
+    verbose : bool, default=DEFAULT_VERBOSE
+        Whether to print progress information.
 
-    Returns:
-        pd.DataFrame: Processed DataFrame with MultiIndex containing completion data,
-            indexed by GENAI_RHYME_COMPLETIONS_INDEX.
+    Returns
+    -------
+    pd.DataFrame
+        Processed DataFrame with MultiIndex containing completion data,
+        indexed by GENAI_RHYME_COMPLETIONS_INDEX.
 
-    Note:
-        This function uses a global cache (PREPROCESSED_LEGACY_COMPLETION_DATA)
-        to avoid reprocessing data within the same session.
+    Calls
+    -----
+    - get_path(DATA_NAME_GENAI_RHYME_COMPLETIONS) [if path is None]
+    - pd.read_csv(path) [to load existing processed data]
+    - pd.read_pickle(f"{PATH_RAWDATA}/data.output.gen_poems.v*.pkl") [to load raw data]
+    - get_id_hash_str(...) [to generate unique IDs]
+    - df.to_csv(path) [to save processed data]
     """
+    # Set default path if not provided
+    if path is None:
+        path = get_path(DATA_NAME_GENAI_RHYME_COMPLETIONS)
 
     global PREPROCESSED_LEGACY_COMPLETION_DATA
 
     if not overwrite and PREPROCESSED_LEGACY_COMPLETION_DATA is not None:
         return PREPROCESSED_LEGACY_COMPLETION_DATA
 
-    if not overwrite and os.path.exists(PATH_GENAI_RHYME_COMPLETIONS):
+    if not overwrite and os.path.exists(path):
         if verbose: print(
-            f"* Loading legacy genai rhyme completions from {nice_path(PATH_GENAI_RHYME_COMPLETIONS)}"
+            f"* Loading legacy genai rhyme completions from {nice_path(path)}"
         )
         odf = (
-            pd.read_csv(PATH_GENAI_RHYME_COMPLETIONS)
+            pd.read_csv(path)
             .fillna("")
             .set_index(GENAI_RHYME_COMPLETIONS_INDEX)
         )
@@ -109,9 +122,9 @@ def preprocess_legacy_genai_rhyme_completions(
 
 
         if verbose: print(
-            f"* Saving legacy genai rhyme completions to {nice_path(PATH_GENAI_RHYME_COMPLETIONS)}"
+            f"* Saving legacy genai rhyme completions to {nice_path(path)}"
         )
-        odf.to_csv(PATH_GENAI_RHYME_COMPLETIONS)
+        odf.to_csv(path)
 
     PREPROCESSED_LEGACY_COMPLETION_DATA = odf
 
@@ -282,6 +295,7 @@ def get_genai_rhyme_completions_as_in_paper(
     min_num_lines=10,
     threshold=95,
     filter_recognized=True,
+    path=None,
     **kwargs
 ):
     """Get generative AI rhyme completions data as used in the paper.
@@ -290,17 +304,41 @@ def get_genai_rhyme_completions_as_in_paper(
     optionally converts it to poem text format for analysis. It provides
     statistics about the dataset including line counts and poem length distributions.
 
-    Args:
-        by_line (bool, optional): If True, returns line-by-line data.
-            If False, converts to poem text format. Defaults to True.
-        keep_first_n_lines (bool, optional): Whether to keep the first N lines
-            from original poems when converting to poem format. Defaults to True.
+    Parameters
+    ----------
+    by_line : bool, default=True
+        If True, returns line-by-line data. If False, converts to poem text format.
+    keep_first_n_lines : bool, default=True
+        Whether to keep the first N lines from original poems when converting to poem format.
+    verbose : bool, default=DEFAULT_VERBOSE
+        Whether to print progress information.
+    min_num_lines : int, default=10
+        Minimum number of lines for poem format conversion.
+    threshold : int, default=95
+        Similarity threshold for filtering recognized completions.
+    filter_recognized : bool, default=True
+        Whether to filter out recognized/memorized completions.
+    path : str, optional
+        Path to the rhyme completions data file. If None, uses default path
+        from get_path(DATA_NAME_GENAI_RHYME_COMPLETIONS).
+    **kwargs
+        Additional arguments passed to postprocess_genai_rhyme_completions().
 
-    Returns:
-        pd.DataFrame: DataFrame containing rhyme completion data, either in
-            line-by-line format or poem text format depending on by_line parameter.
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing rhyme completion data, either in line-by-line format
+        or poem text format depending on by_line parameter.
+
+    Calls
+    -----
+    - preprocess_legacy_genai_rhyme_completions(path=path) [to load preprocessed data]
+    - postprocess_genai_rhyme_completions(...) [to convert and filter data]
     """
-    df_preprocessed = preprocess_legacy_genai_rhyme_completions(overwrite=False)
+    # Set default path if not provided
+    if path is None:
+        path = get_path(DATA_NAME_GENAI_RHYME_COMPLETIONS)
+    df_preprocessed = preprocess_legacy_genai_rhyme_completions(path=path, overwrite=False)
     df_postprocessed = postprocess_genai_rhyme_completions(
         df_preprocessed,
         by_line=by_line,
@@ -406,11 +444,32 @@ def to_poem_txt_format(df, keep_first_n_lines=True, verbose=DEFAULT_VERBOSE, fil
 
 
 def parse_stash_rows_to_poems(df, keep_first_n_lines=True, verbose=DEFAULT_VERBOSE):
-    """Convert stash rows (with 'prompt' and 'response') to poem-level DataFrame.
+    """Convert stash rows with prompts/responses to poem-level DataFrame.
 
-    Expects columns at least: 'model', 'prompt', 'system_prompt', 'temperature', 'response'.
-    Builds full poem text by combining first_n_lines from the prompt with the generated lines
-    from the response. Returns an indexed DataFrame similar to to_poem_txt_format output.
+    Processes cached completion results from the hash stash, parsing the structured
+    prompt/response format to extract complete poems. Combines original poem lines
+    with AI-generated completions to create full poem texts.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing stash rows with columns: 'model', 'prompt',
+        'system_prompt', 'temperature', 'response'.
+    keep_first_n_lines : bool, default=True
+        Whether to include the original first N lines in the final poem.
+    verbose : bool, default=DEFAULT_VERBOSE
+        Whether to print progress information (currently unused).
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with poem-level data indexed by GENAI_RHYME_COMPLETIONS_INDEX,
+        containing complete poems with metadata.
+
+    Calls
+    -----
+    - get_id_hash_str(f"{model}__{temperature:.4f}__{prompt}__{txt}") [to generate stable IDs]
+    - get_id_hash(poem_id) [to generate hash IDs]
     """
     import re as _re
 
@@ -665,6 +724,35 @@ def complete_poem(
 
 
 def get_all_rhyme_completions(*args, by_line=False, verbose=DEFAULT_VERBOSE, **kwargs):
+    """Load and combine both original and replicated rhyme completion datasets.
+
+    Retrieves rhyme completion data from both the original paper dataset and
+    the newly generated replicated dataset, then combines them into a single
+    DataFrame for comprehensive analysis.
+
+    Parameters
+    ----------
+    *args
+        Positional arguments passed to both get_genai_rhyme_completions_as_in_paper()
+        and get_genai_rhyme_completions_as_replicated().
+    by_line : bool, default=False
+        If True, returns line-by-line data. If False, converts to poem text format.
+    verbose : bool, default=DEFAULT_VERBOSE
+        Whether to print progress information.
+    **kwargs
+        Additional keyword arguments passed to both functions.
+
+    Returns
+    -------
+    pd.DataFrame
+        Combined DataFrame containing rhyme completion data from both sources.
+
+    Calls
+    -----
+    - get_genai_rhyme_completions_as_in_paper(*args, by_line=by_line, verbose=verbose, **kwargs)
+    - get_genai_rhyme_completions_as_replicated(*args, by_line=by_line, verbose=verbose, **kwargs)
+    - pd.concat([df1, df2]) [to combine the datasets]
+    """
     df1 = get_genai_rhyme_completions_as_in_paper(
         *args, by_line=by_line, verbose=verbose, **kwargs
     )
@@ -686,7 +774,7 @@ def generate_more_completions(
     verbose=DEFAULT_VERBOSE,
     force=REPLICATE_OVERWRITE,
     max_n_combo=None,
-    source_poems_sample="period",  # 'period', 'rhyme', or 'period_subcorpus'
+    source_poems_sample="period",
 ):
     """
     Generate more poem completions using various models and source poems.
@@ -696,35 +784,41 @@ def generate_more_completions(
     underrepresented combinations to ensure balanced data collection across different
     model-poem pairs.
 
-    Args:
-        n (int, optional): Number of completions to generate. Defaults to 3.
-        df_sofar (pd.DataFrame, optional): Existing dataframe of generated completions to build upon.
-            If None, loads all existing rhyme completions. Defaults to None.
-        models (list, optional): List of model identifiers to use for generation.
-            Defaults to MODEL_LIST from constants.
-        first_n_lines (list, optional): List of possible first_n_lines values to use.
-            Defaults to [2, 5].
-        temperatures (list, optional): List of temperature values for generation.
-            If None, uses default temperature. Defaults to None.
-        verbose (bool, optional): Whether to print progress and status information.
-            Defaults to True.
-        force (bool, optional): Whether to force regeneration even if cached results exist.
-            Defaults to False.
-        max_n_combo (int, optional): Maximum number of entries allowed per model-poem
-            combination. If provided, model-poem pairs that already have this many
-            or more entries will be excluded from selection. Defaults to None (no limit).
-        source_poems_sample (str, optional): Which corpus sample to use for source poems.
-            Options: 'period', 'rhyme', 'period_subcorpus'. Defaults to 'period'.
+    Parameters
+    ----------
+    n : int, default=3
+        Number of completions to generate.
+    df_sofar : pd.DataFrame, optional
+        Existing dataframe of generated completions to build upon.
+        If None, loads all existing rhyme completions.
+    models : list, default=MODEL_LIST
+        List of model identifiers to use for generation.
+    first_n_lines : int, default=FIRST_N_LINES
+        Number of first lines to provide as context for completion.
+    temperatures : list, default=[DEFAULT_TEMPERATURE]
+        List of temperature values for generation.
+    verbose : bool, default=DEFAULT_VERBOSE
+        Whether to print progress and status information.
+    force : bool, default=REPLICATE_OVERWRITE
+        Whether to force regeneration even if cached results exist.
+    max_n_combo : int, optional
+        Maximum number of entries allowed per model-poem combination.
+        If provided, overrepresented combinations will be excluded from selection.
+    source_poems_sample : str, default='period'
+        Which corpus sample to use for source poems.
+        Options: 'period', 'rhyme', 'period_subcorpus'.
 
-    Returns:
-        list: List of dictionaries containing generated completion data, including model,
-            source poem ID, first_n_lines, temperature, and completion results.
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing generated completion data with columns:
+        id, model, id_human, first_n_lines, temperature, response.
 
-    Note:
-        The function uses inverse probability weighting to prioritize model-poem
-        combinations that have been used less frequently, ensuring balanced sampling
-        across the available options. Models that consistently fail are temporarily
-        excluded from further attempts.
+    Calls
+    -----
+    - get_chadwyck_corpus_sampled_by_*() [to load source poems based on source_poems_sample]
+    - complete_poem() [to generate individual completions]
+    - random.choices() [for weighted random selection of models/poems]
     """
 
     # Load source poems from corpus
@@ -966,6 +1060,28 @@ def get_first_n_lines(txt, n=5):
 def get_stash_df_completions(
     stash=STASH_GENAI_RHYME_COMPLETIONS, verbose=DEFAULT_VERBOSE
 ):
+    """Extract rhyme completion data from the hash stash cache.
+
+    Retrieves all cached rhyme completion results from the hash stash
+    and converts them into a pandas DataFrame for analysis.
+
+    Parameters
+    ----------
+    stash : BaseHashStash, default=STASH_GENAI_RHYME_COMPLETIONS
+        Hash stash object containing cached completion results.
+    verbose : bool, default=DEFAULT_VERBOSE
+        Whether to print progress information.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing completion data with 'response' column
+        and all stash metadata columns.
+
+    Calls
+    -----
+    - stash.df.rename(columns={"_value": "response"}).reset_index() [to extract data]
+    """
     if verbose:
         print(f"* Collecting from {stash.path}")
     odf = stash.df.rename(columns={"_value": "response"}).reset_index()
@@ -983,6 +1099,38 @@ def get_genai_rhyme_completions_as_replicated(
     filter_recognized=True,
     **kwargs,
 ):
+    """Get generative AI rhyme completions from replicated generation process.
+
+    Retrieves rhyme completion data that was generated during the replication
+    process, stored in the hash stash cache, and post-processes it for analysis.
+
+    Parameters
+    ----------
+    *args
+        Positional arguments (currently unused).
+    by_line : bool, default=False
+        If True, returns line-by-line data. If False, converts to poem text format.
+    verbose : bool, default=DEFAULT_VERBOSE
+        Whether to print progress information.
+    min_num_lines : int, default=10
+        Minimum number of lines for poem format conversion.
+    threshold : int, default=95
+        Similarity threshold for filtering recognized completions.
+    filter_recognized : bool, default=True
+        Whether to filter out recognized/memorized completions.
+    **kwargs
+        Additional arguments passed to postprocess_genai_rhyme_completions().
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing rhyme completion data from replicated generation.
+
+    Calls
+    -----
+    - get_stash_df_completions(verbose=verbose) [to load cached completions]
+    - postprocess_genai_rhyme_completions(...) [to convert and filter data]
+    """
     if verbose:
         print("\n* Collecting genai rhyme promptings as replicated here")
 
@@ -998,11 +1146,53 @@ def get_genai_rhyme_completions_as_replicated(
     return df_postprocessed
 
 def get_rhyme_for_completed_poems_as_in_paper(**kwargs):
+    """Get rhyme analysis for AI-generated poem completions as used in the paper.
+
+    Loads AI-generated poem completions and computes rhyme metrics for each poem.
+    Uses the original paper's data and methodology.
+
+    Parameters
+    ----------
+    **kwargs
+        Additional arguments passed to get_genai_rhyme_completions_as_in_paper()
+        and get_rhyme_for_sample().
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing AI-generated poems with rhyme analysis data.
+
+    Calls
+    -----
+    - get_genai_rhyme_completions_as_in_paper(by_line=False, **kwargs)
+    - get_rhyme_for_sample(df_smpl, **kwargs)
+    """
     df_smpl = get_genai_rhyme_completions_as_in_paper(by_line=False, **kwargs)
     df_smpl_w_rhyme_data = get_rhyme_for_sample(df_smpl, **kwargs)
     return df_smpl_w_rhyme_data
 
 def get_rhyme_for_completed_poems_as_replicated(**kwargs):
+    """Get rhyme analysis for AI-generated poem completions using replicated data.
+
+    Loads AI-generated poem completions from the replicated generation process
+    and computes rhyme metrics for each poem.
+
+    Parameters
+    ----------
+    **kwargs
+        Additional arguments passed to get_genai_rhyme_completions_as_replicated()
+        and get_rhyme_for_sample().
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing AI-generated poems with rhyme analysis data.
+
+    Calls
+    -----
+    - get_genai_rhyme_completions_as_replicated(by_line=False, **kwargs)
+    - get_rhyme_for_sample(df_smpl, **kwargs)
+    """
     df_smpl = get_genai_rhyme_completions_as_replicated(by_line=False, **kwargs)
     df_smpl_w_rhyme_data = get_rhyme_for_sample(df_smpl, **kwargs)
     return df_smpl_w_rhyme_data

@@ -32,11 +32,11 @@ df_period_sample = get_chadwyck_corpus_sampled_by_period(
 )
 ```
 
-#### `get_chadwyck_corpus_sampled_by_rhyme_as_in_paper()`
+#### `get_chadwyck_corpus_sampled_by('rhyme', as_in_paper=True)()`
 Generates the exact rhyme-based sample used in the paper.
 
 ```python
-df_rhyme_sample = get_chadwyck_corpus_sampled_by_rhyme_as_in_paper()
+df_rhyme_sample = get_chadwyck_corpus_sampled_by('rhyme', as_in_paper=True)()
 # Returns the canonical sample for reproducibility
 ```
 

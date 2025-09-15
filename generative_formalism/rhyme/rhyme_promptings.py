@@ -283,7 +283,7 @@ def preprocess_rhyme_promptings(overwrite=False, save_to=PATH_GENAI_PROMPTS_IN_P
 
 
 def get_genai_rhyme_promptings_as_in_paper(
-    *args, overwrite=False, save_to=PATH_GENAI_PROMPTS_IN_PAPER, verbose=DEFAULT_VERBOSE, **kwargs
+    *args, overwrite=False, save_to=None, verbose=DEFAULT_VERBOSE, display=False, **kwargs
 ):
     """
     Convenience function calling `preprocess_rhyme_promptings` and `postprocess_rhyme_promptings`.
@@ -297,19 +297,22 @@ def get_genai_rhyme_promptings_as_in_paper(
     Returns:
         pd.DataFrame: Postprocessed data as a dataframe.
     """
+
+    if save_to is None:
+        save_to = get_path(DATA_NAME_GENAI_RHYME_PROMPTINGS, as_in_paper=True)
     if verbose:
         print("* Collecting genai rhyme promptings as used in paper")
         print(f'  * Collecting from {save_to}')
     
     df_prompts = preprocess_rhyme_promptings(
         overwrite=overwrite, save_to=save_to, verbose=verbose, **kwargs,
-    )
+    ).rename(columns={"txt":"response", "temp":"temperature"})
 
     kwargs["save_latex_to_suffix"] = PAPER_REGENERATED_SUFFIX
-    return postprocess_rhyme_promptings(df_prompts, *args, verbose=verbose, **kwargs)
+    return postprocess_rhyme_promptings(df_prompts, *args, display=display, as_in_paper=True, as_replicated=False, verbose=verbose, **kwargs)
 
 
-def get_genai_rhyme_promptings_as_replicated(*args, verbose=DEFAULT_VERBOSE, **kwargs):
+def get_genai_rhyme_promptings_as_replicated(*args, verbose=DEFAULT_VERBOSE, display=False, **kwargs):
     """
     Get genai rhyme promptings as replicated in this implementation.
     
@@ -347,12 +350,7 @@ def get_genai_rhyme_promptings_as_replicated(*args, verbose=DEFAULT_VERBOSE, **k
     df_prompts = get_stash_df_poems(verbose=verbose)
 
     kwargs["save_latex_to_suffix"] = REPLICATED_SUFFIX
-    return postprocess_rhyme_promptings(df_prompts, *args, verbose=verbose, **kwargs)
-
-
-def get_genai_rhyme_promptings(df_prompts, *args, verbose=True, **kwargs):
-    odf = postprocess_rhyme_promptings(df_prompts, *args, verbose=verbose, **kwargs)
-    return odf
+    return postprocess_rhyme_promptings(df_prompts, *args, display=display, verbose=verbose, **kwargs)
 
 
 def get_all_genai_rhyme_promptings(*args, display=False, verbose=True, **kwargs):
@@ -394,6 +392,8 @@ def postprocess_rhyme_promptings(
     overwrite=False,
     display=False,
     verbose=True,
+    as_in_paper=True,
+    as_replicated=False,
     **display_kwargs,
 ):
     """Postprocess rhyme promptings data.
@@ -468,12 +468,12 @@ def postprocess_rhyme_promptings(
         save_sample(odf, save_to, overwrite=overwrite)
 
     if display:
-        display_rhyme_promptings(odf, **display_kwargs)
+        display_rhyme_promptings(odf, as_in_paper=as_in_paper, as_replicated=as_replicated, **display_kwargs)
 
     return odf
 
 
-def get_rhyme_promptings_table(df_prompts, return_display=False, **kwargs):
+def get_rhyme_promptings_table(df_prompts, return_display=False, as_in_paper=True, as_replicated=False, **kwargs):
     df_prompts = df_prompts.copy().query('prompt!=""')
     df_prompts["model9"] = df_prompts.model.apply(get_model_cleaned)
     df_prompts["model"] = df_prompts.model.apply(rename_model)
@@ -547,7 +547,7 @@ def get_rhyme_promptings_table(df_prompts, return_display=False, **kwargs):
 
     return df_to_latex_table(
         inner_latex=tabular_str,
-        save_latex_to=f"{PATH_TEX}/table_rhyme_promptings.tex",
+        save_latex_to=get_path(DATA_NAME_TABLE_RHYME_PROMPTINGS, as_in_paper=as_in_paper, as_replicated=as_replicated),
         caption="Number of poems generated for each prompt.",
         label="tab:num_poems_rhyme_promptings",
         position="H",
@@ -561,7 +561,7 @@ def get_rhyme_promptings_table(df_prompts, return_display=False, **kwargs):
 ### METER
 
 
-def get_num_poems_per_model_table(df_prompts, return_display=False, **kwargs):
+def get_num_poems_per_model_table(df_prompts, return_display=False, as_in_paper=True, as_replicated=False, **kwargs):
     df = df_prompts.copy().query('prompt!=""')
     # Normalize model names
     df["model9"] = df.model.apply(get_model_cleaned)
@@ -622,7 +622,7 @@ def get_num_poems_per_model_table(df_prompts, return_display=False, **kwargs):
 
     return df_to_latex_table(
         inner_latex=tabular_str,
-        save_latex_to=f"{PATH_TEX}/table_num_poems_models.tex",
+        save_latex_to=get_path(DATA_NAME_TABLE_NUM_POEMS_MODELS if not save_latex_to else save_latex_to, as_in_paper=as_in_paper, as_replicated=as_replicated),
         caption="Number of poems generated for each model and prompt category.",
         label="tab:num_poems_models",
         position="H",
@@ -644,6 +644,8 @@ def get_demo_model_prompt(demo_model=DEMO_MODEL, demo_prompt=DEMO_PROMPT):
 
     return demo_model, demo_prompt
 
+def get_random_model_prompt():
+    return random.choice(MODEL_LIST), random.choice(PROMPT_LIST)
 
 def get_rhyme_for_prompted_poems_as_in_paper(**kwargs):
     df_smpl = get_genai_rhyme_promptings_as_in_paper(by_line=False, **kwargs)
