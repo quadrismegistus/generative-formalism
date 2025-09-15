@@ -439,16 +439,14 @@ DATA_NAME_RHYME_DATA_BY_PERIOD_SUBCORPUS = "rhyme_data_by_period_subcorpus"
 DATA_NAME_RHYME_DATA_BY_SONNET_PERIOD = "rhyme_data_by_sonnet_period"
 
 
-def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False, as_regenerated=False, is_figure=False):
+def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False, is_figure=False):
     def has_ext(path):
         return bool(os.path.splitext(path)[1])
     
     if not has_ext(data_name):
         data_name = data_name + ext
     
-    if as_regenerated:
-        data_fldr = "data_as_regenerated"
-    elif as_replicated:
+    if as_replicated:
         data_fldr = "data_as_replicated"
     elif as_in_paper:
         data_fldr = "data_as_in_paper"

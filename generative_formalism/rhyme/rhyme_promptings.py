@@ -282,75 +282,12 @@ def preprocess_rhyme_promptings(overwrite=False, save_to=PATH_GENAI_PROMPTS_IN_P
     return df_prompts
 
 
-def get_genai_rhyme_promptings_as_in_paper(
-    *args, overwrite=False, save_to=None, verbose=DEFAULT_VERBOSE, display=False, **kwargs
-):
-    """
-    Convenience function calling `preprocess_rhyme_promptings` and `postprocess_rhyme_promptings`.
-
-    Args:
-        overwrite (bool, optional): Whether to overwrite existing processed data.
-            Defaults to False.
-        save_to (str, optional): Path to save the processed data.
-            Defaults to PATH_GENAI_PROMPTS_IN_PAPER.
-
-    Returns:
-        pd.DataFrame: Postprocessed data as a dataframe.
-    """
-
-    if save_to is None:
-        save_to = get_path(DATA_NAME_GENAI_RHYME_PROMPTINGS, as_in_paper=True)
-    if verbose:
-        print("* Collecting genai rhyme promptings as used in paper")
-        print(f'  * Collecting from {save_to}')
-    
-    df_prompts = preprocess_rhyme_promptings(
-        overwrite=overwrite, save_to=save_to, verbose=verbose, **kwargs,
-    ).rename(columns={"txt":"response", "temp":"temperature"})
-
-    kwargs["save_latex_to_suffix"] = PAPER_REGENERATED_SUFFIX
-    return postprocess_rhyme_promptings(df_prompts, *args, display=display, as_in_paper=True, as_replicated=False, verbose=verbose, **kwargs)
+def get_genai_rhyme_promptings_as_in_paper(*args, **kwargs):
+    raise NotImplementedError("Use get_genai_rhyme_promptings_by(..., as_in_paper=True) instead")
 
 
-def get_genai_rhyme_promptings_as_replicated(*args, verbose=DEFAULT_VERBOSE, display=False, **kwargs):
-    """
-    Get genai rhyme promptings as replicated in this implementation.
-    
-    This function retrieves the rhyme promptings data that was generated
-    and replicated in this codebase, as opposed to the original data
-    used in the paper. It processes the data through the same postprocessing
-    pipeline but uses the replicated suffix for output files.
-    
-    Args:
-        *args: Variable length argument list passed to postprocess_rhyme_promptings.
-        verbose (bool, optional): Whether to print verbose output during processing.
-            Defaults to True.
-        **kwargs: Additional keyword arguments passed to postprocess_rhyme_promptings.
-            Common kwargs include:
-            - prompts: List of prompts to process (defaults to PROMPT_LIST)
-            - models: List of models to process (defaults to MODEL_LIST)
-            - min_lines: Minimum number of lines per poem (defaults to MIN_NUM_LINES)
-            - max_lines: Maximum number of lines per poem (defaults to MAX_NUM_LINES)
-            - save_to: Path to save processed data
-            - overwrite: Whether to overwrite existing files
-    
-    Returns:
-        pd.DataFrame: Processed rhyme promptings data with replicated suffix
-        applied to output files. Contains the same structure as the paper
-        data but generated from the current implementation's stash.
-        
-    Note:
-        This function uses REPLICATED_SUFFIX for output file naming to
-        distinguish it from the original paper data. The underlying data
-        comes from get_stash_df_poems() which contains the replicated
-        generation results.
-    """
-    if verbose:
-        print("\n* Collecting genai rhyme promptings as replicated here")
-    df_prompts = get_stash_df_poems(verbose=verbose)
-
-    kwargs["save_latex_to_suffix"] = REPLICATED_SUFFIX
-    return postprocess_rhyme_promptings(df_prompts, *args, display=display, verbose=verbose, **kwargs)
+def get_genai_rhyme_promptings_as_replicated(*args, **kwargs):
+    raise NotImplementedError("Use get_genai_rhyme_promptings_by(..., as_replicated=True) instead")
 
 
 def get_all_genai_rhyme_promptings(*args, display=False, verbose=True, **kwargs):
@@ -366,8 +303,8 @@ def get_all_genai_rhyme_promptings(*args, display=False, verbose=True, **kwargs)
     Returns:
         pd.DataFrame: All genai rhyme promptings
     """
-    df1 = get_genai_rhyme_promptings_as_in_paper(*args, display=False, verbose=verbose, **kwargs)
-    df2 = get_genai_rhyme_promptings_as_replicated(*args, display=False, verbose=verbose, **kwargs)
+    df1 = get_genai_rhyme_promptings_by(*args, as_in_paper=True, as_replicated=False, display=False, verbose=verbose, **kwargs)
+    df2 = get_genai_rhyme_promptings_by(*args, as_in_paper=False, as_replicated=True, display=False, verbose=verbose, **kwargs)
     odf = pd.concat([df1, df2])
     if display:
         display_rhyme_promptings(odf, **kwargs)
@@ -648,11 +585,71 @@ def get_random_model_prompt():
     return random.choice(MODEL_LIST), random.choice(PROMPT_LIST)
 
 def get_rhyme_for_prompted_poems_as_in_paper(**kwargs):
-    df_smpl = get_genai_rhyme_promptings_as_in_paper(by_line=False, **kwargs)
-    df_smpl_w_rhyme_data = get_rhyme_for_sample(df_smpl, **kwargs)
-    return df_smpl_w_rhyme_data
+    raise NotImplementedError("Use get_rhyme_for_prompted_poems_by(..., as_in_paper=True) instead")
 
 def get_rhyme_for_prompted_poems_as_replicated(**kwargs):
-    df_smpl = get_genai_rhyme_promptings_as_replicated(by_line=False, **kwargs)
-    df_smpl_w_rhyme_data = get_rhyme_for_sample(df_smpl, **kwargs)
-    return df_smpl_w_rhyme_data
+    raise NotImplementedError("Use get_rhyme_for_prompted_poems_by(..., as_replicated=True) instead")
+
+
+def get_genai_rhyme_promptings_by(
+    *args,
+    as_in_paper=True,
+    as_replicated=False,
+    verbose=DEFAULT_VERBOSE,
+    display=False,
+    **kwargs,
+):
+    """Unified accessor for genai rhyme promptings with source selection.
+
+    Mirrors the corpus/sample "by" pattern. Exactly one of the flags should be True.
+    """
+    flags_true = sum([bool(as_in_paper), bool(as_replicated)])
+    if flags_true != 1:
+        raise ValueError("Specify exactly one of as_in_paper, as_replicated")
+
+    if as_replicated:
+        return get_genai_rhyme_promptings_as_replicated(
+            *args,
+            verbose=verbose,
+            display=display,
+            **kwargs,
+        )
+
+    # Default: as_in_paper
+    return get_genai_rhyme_promptings_as_in_paper(
+        *args,
+        verbose=verbose,
+        display=display,
+        **kwargs,
+    )
+
+
+def get_rhyme_for_prompted_poems_by(
+    *args,
+    as_in_paper=True,
+    as_replicated=False,
+    verbose=DEFAULT_VERBOSE,
+    **kwargs,
+):
+    """Unified accessor for rhyme analysis over prompted poems.
+
+    Selects between in-paper, replicated, or regenerated sources.
+    """
+    flags_true = sum([bool(as_in_paper), bool(as_replicated)])
+    if flags_true != 1:
+        raise ValueError("Specify exactly one of as_in_paper, as_replicated")
+
+    if as_replicated:
+        return get_rhyme_for_prompted_poems_as_replicated(
+            *args,
+            verbose=verbose,
+            **kwargs,
+        )
+
+
+    # Default: as_in_paper
+    return get_rhyme_for_prompted_poems_as_in_paper(
+        *args,
+        verbose=verbose,
+        **kwargs,
+    )

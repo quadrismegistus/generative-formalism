@@ -101,7 +101,6 @@ def get_chadwyck_corpus_sampled_by(
     sample_by,
     as_in_paper=True,
     as_replicated=False,
-    as_regenerated=False,
     display=False,
     verbose=False,
     **kwargs,
@@ -120,8 +119,6 @@ def get_chadwyck_corpus_sampled_by(
         If True, load precomputed sample from paper.
     as_replicated : bool, default=False
         If True, load/generate replicated sample.
-    as_regenerated : bool, default=False
-        If True, load/generate regenerated sample.
     display : bool, default=False
         If True, display summary statistics for the sample.
     verbose : bool, default=False
@@ -136,8 +133,8 @@ def get_chadwyck_corpus_sampled_by(
 
     Calls
     -----
-    - get_path(data_name, as_in_paper=True, as_replicated=False, as_regenerated=False)
-    - get_chadwyck_corpus_sampled_by_replicated(...) [if as_replicated or as_regenerated is True]
+    - get_path(data_name, as_in_paper=True, as_replicated=False)
+    - get_chadwyck_corpus_sampled_by_replicated(...) [if as_replicated is True]
     - pd.read_csv(path).fillna("").set_index("id").sort_values("id_hash") [if loading precomputed sample]
     - describe_qual_grouped(odf, groupby=gby, sort_index=True, count=False, name=sample_by) [if display=True]
     """
@@ -158,12 +155,11 @@ def get_chadwyck_corpus_sampled_by(
 
     data_name = sample_by_map[sample_by]
 
-    if as_replicated or as_regenerated:
+    if as_replicated:
         odf = get_chadwyck_corpus_sampled_by_replicated(
             sample_by,
             as_in_paper=as_in_paper,
             as_replicated=as_replicated,
-            as_regenerated=as_regenerated,
             **kwargs,
         )
     elif as_in_paper:
@@ -173,7 +169,7 @@ def get_chadwyck_corpus_sampled_by(
             raise FileNotFoundError(f"Precomputed sample not found at {path}")
         odf = pd.read_csv(path).fillna("").set_index("id").sort_values("id_hash")
     else:
-        raise ValueError("Must specify as_in_paper, as_replicated, or as_regenerated")
+        raise ValueError("Must specify as_in_paper, as_replicated")
 
     # Handle display options for specific sample types
     if display:
@@ -189,7 +185,6 @@ def get_chadwyck_corpus_sampled_by(
     odf._sample_by = sample_by
     odf._as_in_paper = as_in_paper
     odf._as_replicated = as_replicated
-    odf._as_regenerated = as_regenerated
 
     return odf
 
@@ -270,7 +265,6 @@ def get_chadwyck_corpus_sampled_by_replicated(
     verbose=False,
     as_in_paper=True,
     as_replicated=False,
-    as_regenerated=False,
     **kwargs,
 ) -> pd.DataFrame:
     """Load or generate a stratified sample with disk caching.
@@ -293,8 +287,6 @@ def get_chadwyck_corpus_sampled_by_replicated(
         If True, use precomputed sample from paper.
     as_replicated : bool, default=False
         If True, use replicated sample.
-    as_regenerated : bool, default=False
-        If True, use regenrated sample.
     **kwargs: Additional arguments passed to gen_chadwyck_corpus_sampled_by
 
     Returns
@@ -323,7 +315,6 @@ def get_chadwyck_corpus_sampled_by_replicated(
         print(f'* Getting corpus sampled by{sample_by}')
         print(f'* as_in_paper: {as_in_paper}')
         print(f'* as_replicated: {as_replicated}')
-        print(f'* as_regenerated: {as_regenerated}')
         print(f'* sort_id_hash: {sort_id_hash}')
 
     # Map sample_by to the appropriate data name
@@ -338,8 +329,7 @@ def get_chadwyck_corpus_sampled_by_replicated(
     path = get_path(
         data_name,
         as_in_paper=as_in_paper,
-        as_replicated=as_replicated,
-        as_regenerated=as_regenerated,
+        as_replicated=as_replicated,    
     )
 
     if force or not os.path.exists(path):

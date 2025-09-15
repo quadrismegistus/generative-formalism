@@ -1,6 +1,79 @@
 from . import *
 
 
+
+def get_genai_rhyme_completions(
+    *args,
+    as_in_paper=True,
+    as_replicated=False,
+    by_line=True,
+    verbose=DEFAULT_VERBOSE,
+    min_num_lines=10,
+    threshold=95,
+    filter_recognized=True,
+    path=None,
+    **kwargs,
+):
+    """Unified accessor for genai rhyme completions with source selection.
+
+    Select between data-as-in-paper, replicated (stash-based), or regenerated
+    outputs using flags consistent with corpus/sample accessors.
+
+    Exactly one of as_in_paper, as_replicated should be True.
+    """
+    flags_true = sum([bool(as_in_paper), bool(as_replicated)])
+    if flags_true != 1:
+        raise ValueError("Specify exactly one of as_in_paper, as_replicated")
+
+    if as_replicated:
+        df_preprocessed = get_stash_df_completions(verbose=verbose)
+    else:
+        df_preprocessed = preprocess_legacy_genai_rhyme_completions(path=path, overwrite=False)
+        
+    df_postprocessed = postprocess_genai_rhyme_completions(
+        df_preprocessed,
+        by_line=by_line,
+        verbose=verbose,
+        min_num_lines=min_num_lines,
+        threshold=threshold,
+        filter_recognized=filter_recognized,
+    )
+    return df_postprocessed
+
+
+def get_rhyme_for_completed_poems_by(
+    *args,
+    as_in_paper=True,
+    as_replicated=False,
+    verbose=DEFAULT_VERBOSE,
+    **kwargs,
+):
+    """Unified accessor for rhyme analysis over completed poems.
+
+    Mirrors the "by" pattern used in corpus/sample to select data source.
+    """
+    flags_true = sum([bool(as_in_paper), bool(as_replicated)])
+    if flags_true != 1:
+        raise ValueError("Specify exactly one of as_in_paper, as_replicated")
+
+    if as_replicated:
+        return get_rhyme_for_completed_poems_as_replicated(
+            *args,
+            verbose=verbose,
+            **kwargs,
+        )
+
+    # Default: as_in_paper
+    return get_rhyme_for_completed_poems_as_in_paper(
+        *args,
+        verbose=verbose,
+        **kwargs,
+    )
+
+
+
+
+
 def preprocess_legacy_genai_rhyme_completions(
     path=None, overwrite=False, first_n_lines=FIRST_N_LINES, verbose=DEFAULT_VERBOSE
 ):
@@ -287,67 +360,6 @@ def filter_recognized_completions(df, threshold=95, groupby=COMPLETIONS_GROUPBY,
         print(f"* Filtered out {num1 - len(grps)} recognized poems")
     return df_safe
 
-
-def get_genai_rhyme_completions_as_in_paper(
-    by_line=True,
-    keep_first_n_lines=True,
-    verbose=DEFAULT_VERBOSE,
-    min_num_lines=10,
-    threshold=95,
-    filter_recognized=True,
-    path=None,
-    **kwargs
-):
-    """Get generative AI rhyme completions data as used in the paper.
-
-    This function retrieves preprocessed legacy rhyme completion data and
-    optionally converts it to poem text format for analysis. It provides
-    statistics about the dataset including line counts and poem length distributions.
-
-    Parameters
-    ----------
-    by_line : bool, default=True
-        If True, returns line-by-line data. If False, converts to poem text format.
-    keep_first_n_lines : bool, default=True
-        Whether to keep the first N lines from original poems when converting to poem format.
-    verbose : bool, default=DEFAULT_VERBOSE
-        Whether to print progress information.
-    min_num_lines : int, default=10
-        Minimum number of lines for poem format conversion.
-    threshold : int, default=95
-        Similarity threshold for filtering recognized completions.
-    filter_recognized : bool, default=True
-        Whether to filter out recognized/memorized completions.
-    path : str, optional
-        Path to the rhyme completions data file. If None, uses default path
-        from get_path(DATA_NAME_GENAI_RHYME_COMPLETIONS).
-    **kwargs
-        Additional arguments passed to postprocess_genai_rhyme_completions().
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame containing rhyme completion data, either in line-by-line format
-        or poem text format depending on by_line parameter.
-
-    Calls
-    -----
-    - preprocess_legacy_genai_rhyme_completions(path=path) [to load preprocessed data]
-    - postprocess_genai_rhyme_completions(...) [to convert and filter data]
-    """
-    # Set default path if not provided
-    if path is None:
-        path = get_path(DATA_NAME_GENAI_RHYME_COMPLETIONS)
-    df_preprocessed = preprocess_legacy_genai_rhyme_completions(path=path, overwrite=False)
-    df_postprocessed = postprocess_genai_rhyme_completions(
-        df_preprocessed,
-        by_line=by_line,
-        verbose=verbose,
-        min_num_lines=min_num_lines,
-        threshold=threshold,
-        filter_recognized=filter_recognized,
-    )
-    return df_postprocessed
 
 
 # To poem format
@@ -753,11 +765,13 @@ def get_all_rhyme_completions(*args, by_line=False, verbose=DEFAULT_VERBOSE, **k
     - get_genai_rhyme_completions_as_replicated(*args, by_line=by_line, verbose=verbose, **kwargs)
     - pd.concat([df1, df2]) [to combine the datasets]
     """
-    df1 = get_genai_rhyme_completions_as_in_paper(
-        *args, by_line=by_line, verbose=verbose, **kwargs
+    df1 = get_genai_rhyme_completions_by(
+        *args, as_in_paper=True, as_replicated=False,
+        by_line=by_line, verbose=verbose, **kwargs
     )
-    df2 = get_genai_rhyme_completions_as_replicated(
-        *args, by_line=by_line, verbose=verbose, **kwargs
+    df2 = get_genai_rhyme_completions_by(
+        *args, as_in_paper=False, as_replicated=True,
+        by_line=by_line, verbose=verbose, **kwargs
     )
     if verbose:
         print(f"* Loaded {len(df1)} existing completions")
@@ -839,7 +853,7 @@ def generate_more_completions(
     # Get existing completions data
     if df_sofar is None:
         try:
-            df = get_genai_rhyme_completions_as_in_paper(by_line=True)
+            df = get_genai_rhyme_completions_by(as_in_paper=True, as_replicated=False, by_line=True)
             if verbose:
                 print(f"* Loaded {len(df)} existing completions")
         except:
@@ -1090,109 +1104,3 @@ def get_stash_df_completions(
     return odf
 
 
-def get_genai_rhyme_completions_as_replicated(
-    *args,
-    by_line=False,
-    verbose=DEFAULT_VERBOSE,
-    min_num_lines=10,
-    threshold=95,
-    filter_recognized=True,
-    **kwargs,
-):
-    """Get generative AI rhyme completions from replicated generation process.
-
-    Retrieves rhyme completion data that was generated during the replication
-    process, stored in the hash stash cache, and post-processes it for analysis.
-
-    Parameters
-    ----------
-    *args
-        Positional arguments (currently unused).
-    by_line : bool, default=False
-        If True, returns line-by-line data. If False, converts to poem text format.
-    verbose : bool, default=DEFAULT_VERBOSE
-        Whether to print progress information.
-    min_num_lines : int, default=10
-        Minimum number of lines for poem format conversion.
-    threshold : int, default=95
-        Similarity threshold for filtering recognized completions.
-    filter_recognized : bool, default=True
-        Whether to filter out recognized/memorized completions.
-    **kwargs
-        Additional arguments passed to postprocess_genai_rhyme_completions().
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame containing rhyme completion data from replicated generation.
-
-    Calls
-    -----
-    - get_stash_df_completions(verbose=verbose) [to load cached completions]
-    - postprocess_genai_rhyme_completions(...) [to convert and filter data]
-    """
-    if verbose:
-        print("\n* Collecting genai rhyme promptings as replicated here")
-
-    df_preprocessed = get_stash_df_completions(verbose=verbose)
-    df_postprocessed = postprocess_genai_rhyme_completions(
-        df_preprocessed,
-        by_line=by_line,
-        verbose=verbose,
-        min_num_lines=min_num_lines,
-        threshold=threshold,
-        filter_recognized=filter_recognized,
-    )
-    return df_postprocessed
-
-def get_rhyme_for_completed_poems_as_in_paper(**kwargs):
-    """Get rhyme analysis for AI-generated poem completions as used in the paper.
-
-    Loads AI-generated poem completions and computes rhyme metrics for each poem.
-    Uses the original paper's data and methodology.
-
-    Parameters
-    ----------
-    **kwargs
-        Additional arguments passed to get_genai_rhyme_completions_as_in_paper()
-        and get_rhyme_for_sample().
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame containing AI-generated poems with rhyme analysis data.
-
-    Calls
-    -----
-    - get_genai_rhyme_completions_as_in_paper(by_line=False, **kwargs)
-    - get_rhyme_for_sample(df_smpl, **kwargs)
-    """
-    df_smpl = get_genai_rhyme_completions_as_in_paper(by_line=False, **kwargs)
-    df_smpl_w_rhyme_data = get_rhyme_for_sample(df_smpl, **kwargs)
-    return df_smpl_w_rhyme_data
-
-def get_rhyme_for_completed_poems_as_replicated(**kwargs):
-    """Get rhyme analysis for AI-generated poem completions using replicated data.
-
-    Loads AI-generated poem completions from the replicated generation process
-    and computes rhyme metrics for each poem.
-
-    Parameters
-    ----------
-    **kwargs
-        Additional arguments passed to get_genai_rhyme_completions_as_replicated()
-        and get_rhyme_for_sample().
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame containing AI-generated poems with rhyme analysis data.
-
-    Calls
-    -----
-    - get_genai_rhyme_completions_as_replicated(by_line=False, **kwargs)
-    - get_rhyme_for_sample(df_smpl, **kwargs)
-    """
-    df_smpl = get_genai_rhyme_completions_as_replicated(by_line=False, **kwargs)
-    df_smpl_w_rhyme_data = get_rhyme_for_sample(df_smpl, **kwargs)
-    return df_smpl_w_rhyme_data
