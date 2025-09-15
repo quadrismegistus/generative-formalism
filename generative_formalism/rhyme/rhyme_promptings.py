@@ -246,13 +246,17 @@ def get_legacy_df_poems2(path_json=PATH_RAW_JSON, verbose=DEFAULT_VERBOSE):
 def get_stash_df_poems(verbose=DEFAULT_VERBOSE):
     if verbose:
         print(f"  * Collecting from {STASH_GENAI_RHYME_PROMPTS.path}")
-    odf = STASH_GENAI_RHYME_PROMPTS.df.rename(columns={"_value": "response"})
+    ld = STASH_GENAI_RHYME_PROMPTS.ld
+    df = pd.DataFrame(ld).rename(columns={"_value": "txt", "temp": "temperature"})
+    df['prompt_type'] = df.prompt.apply(lambda x: PROMPT_TO_TYPE.get(x, "Unknown"))
+    df['id'] = [get_id_hash_str("__".join(vals)) for vals in df.applymap(str).values]
+    df['id_hash'] = [get_id_hash(id) for id in df.id]
     if verbose:
-        print(f"  * {len(odf)} generated poems")
-    return odf
+        print(f"  * {len(df)} generated poems")
+    return df.set_index('id')
 
 
-def preprocess_rhyme_promptings(overwrite=False, save_to=PATH_GENAI_PROMPTS_IN_PAPER, verbose=DEFAULT_VERBOSE, **kwargs):
+def preprocess_rhyme_promptings(overwrite=False, verbose=DEFAULT_VERBOSE, **kwargs):
     """Preprocess rhyme promptings data.
 
     This function preprocesses rhyme promptings data from legacy pickle and JSON files,
@@ -268,26 +272,19 @@ def preprocess_rhyme_promptings(overwrite=False, save_to=PATH_GENAI_PROMPTS_IN_P
         pd.DataFrame: Preprocessed data as a dataframe.
     """
 
-    if not overwrite and os.path.exists(save_to):
-        return pd.read_csv(save_to)
+    path = get_path(DATA_NAME_GENAI_RHYME_PROMPTINGS)
+    if not overwrite and os.path.exists(path):
+        df_prompts = pd.read_csv(path).set_index('id')
     else:
         df1 = get_legacy_df_poems1(verbose=verbose)
         df2 = get_legacy_df_poems2(verbose=verbose)
         df_prompts = pd.concat([df1, df2])
 
         if verbose:
-            print(f"* Saving to {save_to}")
-        df_prompts.to_csv(save_to)
+            print(f"* Saving to {path}")
+        df_prompts.to_csv(path)
 
-    return df_prompts
-
-
-def get_genai_rhyme_promptings_as_in_paper(*args, **kwargs):
-    raise NotImplementedError("Use get_genai_rhyme_promptings_by(..., as_in_paper=True) instead")
-
-
-def get_genai_rhyme_promptings_as_replicated(*args, **kwargs):
-    raise NotImplementedError("Use get_genai_rhyme_promptings_by(..., as_replicated=True) instead")
+    return df_prompts.rename(columns={'response': 'txt', 'temp':'temperature'})
 
 
 def get_all_genai_rhyme_promptings(*args, display=False, verbose=True, **kwargs):
@@ -364,8 +361,8 @@ def postprocess_rhyme_promptings(
 
     # Set other cols
 
-    df_prompts = df_prompts.fillna("")
-    df_prompts["txt"] = df_prompts.response.apply(clean_poem_str)
+    df_prompts = df_prompts.fillna("").rename(columns={'response': 'txt', 'temp':'temperature'})
+    df_prompts["txt"] = df_prompts.txt.apply(clean_poem_str)
     df_prompts["num_lines"] = df_prompts.txt.apply(get_num_lines)
     df_prompts["prompt_type"] = df_prompts.prompt.apply(
         lambda x: PROMPT_TO_TYPE.get(x, "Unknown")
@@ -378,12 +375,11 @@ def postprocess_rhyme_promptings(
 
     if verbose:
         print(f"  * {len(df_prompts):,} generated responses")
-        print(f"  * {df_prompts.response.nunique():,} unique responses")
         print(f"  * {df_prompts.txt.nunique():,} unique poems")
         print(f"  * {df_prompts.prompt.nunique():,} unique prompts")
         print(f"  * {df_prompts.prompt_type.nunique():,} unique prompt types")
 
-    cols = ["id", "id_hash","prompt_type", "prompt", "model", "temperature", "txt", "num_lines"]
+    cols = ["id", "data_source", "id_hash","prompt_type", "prompt", "model", "temperature", "txt", "num_lines"]
 
     df_prompts["id"] = [
         get_id_hash_str(f"{model}__{temp:.4f}__{prompt}__{txt}")
@@ -559,7 +555,7 @@ def get_num_poems_per_model_table(df_prompts, return_display=False, as_in_paper=
 
     return df_to_latex_table(
         inner_latex=tabular_str,
-        save_latex_to=get_path(DATA_NAME_TABLE_NUM_POEMS_MODELS if not save_latex_to else save_latex_to, as_in_paper=as_in_paper, as_replicated=as_replicated),
+        save_latex_to=get_path(DATA_NAME_TABLE_NUM_POEMS_MODELS, as_in_paper=as_in_paper, as_replicated=as_replicated),
         caption="Number of poems generated for each model and prompt category.",
         label="tab:num_poems_models",
         position="H",
@@ -591,8 +587,7 @@ def get_rhyme_for_prompted_poems_as_replicated(**kwargs):
     raise NotImplementedError("Use get_rhyme_for_prompted_poems_by(..., as_replicated=True) instead")
 
 
-def get_genai_rhyme_promptings_by(
-    *args,
+def get_genai_rhyme_promptings(
     as_in_paper=True,
     as_replicated=False,
     verbose=DEFAULT_VERBOSE,
@@ -603,25 +598,28 @@ def get_genai_rhyme_promptings_by(
 
     Mirrors the corpus/sample "by" pattern. Exactly one of the flags should be True.
     """
-    flags_true = sum([bool(as_in_paper), bool(as_replicated)])
-    if flags_true != 1:
-        raise ValueError("Specify exactly one of as_in_paper, as_replicated")
-
+    ld = []
+    if as_in_paper:
+        df = preprocess_rhyme_promptings(overwrite=False).reset_index().assign(data_source='in_paper')
+        ld.extend(df.to_dict(orient='records'))
+    
     if as_replicated:
-        return get_genai_rhyme_promptings_as_replicated(
-            *args,
-            verbose=verbose,
-            display=display,
-            **kwargs,
-        )
+        if verbose:
+            print("\n* Collecting genai rhyme promptings as replicated here")
+        df = get_stash_df_poems(verbose=verbose).reset_index().assign(data_source='replicated')
+        ld.extend(df.to_dict(orient='records'))
 
-    # Default: as_in_paper
-    return get_genai_rhyme_promptings_as_in_paper(
-        *args,
-        verbose=verbose,
-        display=display,
-        **kwargs,
+    if len(ld) == 0:
+        raise ValueError("No data sources selected")
+
+    df_prompts = pd.DataFrame(ld).fillna("").set_index('id')
+    return postprocess_rhyme_promptings(
+        df_prompts, 
+        display=display, 
+        verbose=verbose, 
+        **kwargs
     )
+
 
 
 def get_rhyme_for_prompted_poems_by(

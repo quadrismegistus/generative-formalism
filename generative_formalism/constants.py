@@ -83,8 +83,8 @@ REPLICATE_LLM_DATA = True
 
 # Raw data paths
 PATH_RAWDATA = f'{PATH_DATA}/raw'
-PATH_RAW_PKL = f'{PATH_RAWDATA}/data.allpoems.pkl.gz'
-PATH_RAW_JSON = f'{PATH_RAWDATA}/data.newpoems2.json.gz'
+PATH_RAW_PKL = f'{PATH_RAWDATA}/rhyme_promptings/genai_rhyme_promptings.phase_1.pkl.gz'
+PATH_RAW_JSON = f'{PATH_RAWDATA}/rhyme_promptings/genai_rhyme_promptings.phase_2.json.gz'
 PATH_RAW_DOLMA_PKL = f'{PATH_RAWDATA}/data.found_dolma.pkl'
 PATH_RAW_ANTONIAK_CSV = f'{PATH_RAWDATA}/data.antoniak_et_al_memorization_results.csv.gz'
 
@@ -430,6 +430,8 @@ DATA_NAME_CORPUS_SAMPLE_BY_SONNET_PERIOD = "corpus_sample_by_sonnet_period"
 DATA_NAME_TABLE_PERIOD_COUNTS = "table.period_counts.tex"
 DATA_NAME_TABLE_PERIOD_SUBCORPUS_COUNTS = "table.period_subcorpus_counts.tex"
 DATA_NAME_TABLE_SONNET_PERIOD_COUNTS = "table.sonnet_period_counts.tex"
+DATA_NAME_TABLE_RHYME_PROMPTINGS = "table.genai_rhyme_promptings.tex"
+DATA_NAME_TABLE_NUM_POEMS_MODELS = "table.num_poems_models.tex"
 
 # Rhyme completion data files
 DATA_NAME_GENAI_RHYME_COMPLETIONS = "genai_rhyme_completions"
