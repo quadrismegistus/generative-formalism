@@ -22,7 +22,6 @@ import prosodic
 from hashstash import stashed_result, JSONLHashStash, HashStash
 from hashstash.engines.jsonl import JSONLHashStash
 from rapidfuzz import fuzz
-pd.options.display.max_rows = 100
 
 try:
     from litellm import acompletion
@@ -37,7 +36,7 @@ load_dotenv()
 
 p9.options.figure_size = (10, 5)
 p9.options.dpi = 300
-pd.options.display.max_rows = 25
+pd.options.display.max_rows = 5
 
 prosodic.USE_CACHE = False
 prosodic.LOG_LEVEL = 'CRITICAL'

@@ -411,9 +411,8 @@ def describe_models(models=MODEL_LIST, model_to_type=MODEL_TO_TYPE):
     # Models
     print(f'''* {len(models)} models (counting parameter changes)\n* {len(type_to_models)} model types ({", ".join(sorted(type_to_models.keys()))})''')
     for type, models in type_to_models.items():
-        print(f'  * {type}:')
-        for model in models:
-            print(f'    - {model}')
+        print(f'  * {type}: {", ".join(models)}')
+    print()
 
 def filter_available_models(models=MODEL_LIST, verbose=False):
     """
@@ -422,7 +421,7 @@ def filter_available_models(models=MODEL_LIST, verbose=False):
     api_keys = check_api_keys(verbose=verbose)
     models2 = []
     for model in models:
-        if model in api_keys:
+        if get_model_api_key_required(model) in api_keys:
             if verbose:
                 print(f'  ✓ {model}')
             models2.append(model)
@@ -432,7 +431,7 @@ def filter_available_models(models=MODEL_LIST, verbose=False):
     return models2
 
 
-def get_demo_model_prompt(demo_model=None, demo_prompt=None, verbose=True):
+def get_demo_model_prompt(demo_model=None, demo_prompt=None, verbose=False):
     """
     Return demo model and prompt, defaults to DEMO_MODEL and DEMO_PROMPT.
     """
@@ -448,3 +447,7 @@ def get_demo_model_prompt(demo_model=None, demo_prompt=None, verbose=True):
         demo_prompt = DEMO_PROMPT
 
     return demo_model, demo_prompt
+
+def get_working_model():
+    models = filter_available_models(models=MODEL_LIST, verbose=False)
+    return models[0] if models else MODEL_LIST[0]

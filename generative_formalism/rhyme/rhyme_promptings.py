@@ -64,7 +64,8 @@ def generate_more_poems_from_rhyme_prompts(
     """
 
     # Prioritize underrepresented models and prompts
-    df = get_all_genai_rhyme_promptings(verbose=verbose) if df_sofar is None else df_sofar
+    # df = get_all_genai_rhyme_promptings(verbose=verbose) if df_sofar is None else df_sofar
+    df = pd.DataFrame() if df_sofar is None else df_sofar
 
     # Create copies to modify
     models = list(models)
