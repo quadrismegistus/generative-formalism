@@ -85,8 +85,8 @@ REPLICATE_LLM_DATA = True
 PATH_RAWDATA = f'{PATH_DATA}/raw'
 PATH_RAW_PKL = f'{PATH_RAWDATA}/rhyme_promptings/genai_rhyme_promptings.phase_1.pkl.gz'
 PATH_RAW_JSON = f'{PATH_RAWDATA}/rhyme_promptings/genai_rhyme_promptings.phase_2.json.gz'
-PATH_RAW_DOLMA_PKL = f'{PATH_RAWDATA}/data.found_dolma.pkl'
-PATH_RAW_ANTONIAK_CSV = f'{PATH_RAWDATA}/data.antoniak_et_al_memorization_results.csv.gz'
+PATH_RAW_DOLMA_PKL = f'{PATH_RAWDATA}/memorization/dolma/data.found_dolma.pkl'
+PATH_RAW_ANTONIAK_CSV = f'{PATH_RAWDATA}/memorization/data.antoniak_et_al_memorization_results.csv.gz'
 
 PATH_TEX = f'{PATH_DATA}/tex'
 
@@ -421,13 +421,13 @@ PATH_RHYME_DATA_FOR_REPLICATED_SAMPLE_BY_SONNET_PERIOD = PATH_SAMPLE_SONNET_REPL
 PATH_RHYME_DATA_FOR_GENAI_PROMPTS_REPLICATED_SAMPLE = PATH_GENAI_PROMPTS_REPLICATED.replace('.csv', f'.{RHYME_DATA_SUFFIX}.csv')
 PATH_RHYME_DATA_FOR_GENAI_COMPLETIONS_REPLICATED_SAMPLE = PATH_GENAI_COMPLETIONS_REPLICATED.replace('.csv', f'.{RHYME_DATA_SUFFIX}.csv')
 
-PATH_ANTONIAK_ET_AL_DIR = PATH_RAWDATA + "/antoniak-et-al"
-PATH_ANTONIAK_ET_AL_CSV = PATH_DATA + "/data.antoniak_et_al_memorization_results.csv.gz"
+PATH_ANTONIAK_ET_AL_DIR = PATH_RAWDATA + "/memorization/antoniak-et-al"
+PATH_ANTONIAK_ET_AL_CSV = PATH_RAWDATA + "/memorization/data.antoniak_et_al_memorization_results.csv.gz"
 
-PATH_DOLMA_CSV = PATH_DATA + "/data.memorized_poems_in_dolma.csv.gz"
-PATH_ALL_MEMORIZATION_DATA = PATH_DATA + "/data.all_memorization_data.csv.gz"
+PATH_DOLMA_CSV = PATH_RAWDATA + "/memorization/data.memorized_poems_in_dolma.csv.gz"
+PATH_ALL_MEMORIZATION_DATA = PATH_RAWDATA + "/memorization/data.all_memorization_data.csv.gz"
 
-PATH_CHADWYCK_MEMORIZATION_DATA = PATH_DATA + "/data.chadwyck_memorization_data.csv.gz"
+PATH_CHADWYCK_MEMORIZATION_DATA = PATH_RAWDATA + "/memorization/data.chadwyck_memorization_data.csv.gz"
 
 
 DATA_NAME_GENAI_RHYME_COMPLETIONS = "genai_rhyme_completions"
@@ -453,12 +453,12 @@ DATA_NAME_RHYME_DATA_BY_PERIOD_SUBCORPUS = "rhyme_data_by_period_subcorpus"
 DATA_NAME_RHYME_DATA_BY_SONNET_PERIOD = "rhyme_data_by_sonnet_period"
 
 
-def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False, is_figure=False):
+def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False, is_figure=False, ext_figure = '.png'):
     def has_ext(path):
         return bool(os.path.splitext(path)[1])
     
     if not has_ext(data_name):
-        data_name = data_name + ext
+        data_name = data_name + (ext if not is_figure else ext_figure)
     
     if as_replicated:
         data_fldr = "data_as_replicated"
@@ -469,6 +469,7 @@ def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False, is
 
     if is_figure:
         data_fldr = f"{data_fldr}/figures"
+        
     
     # Handle tex files by adding tex subdirectory
     if data_name.endswith('.tex'):

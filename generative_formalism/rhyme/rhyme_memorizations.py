@@ -339,7 +339,7 @@ def get_memorized_poems_in_completions_as_in_paper(
     Notes
     -----
     This function uses the original paper's methodology for detecting memorization:
-    1. Loads GenAI rhyme completions data (get_genai_rhyme_completions_as_in_paper)
+    1. Loads GenAI rhyme completions data (get_genai_rhyme_completions)
     2. Applies similarity-based detection with specified threshold
     3. Returns only poems that exceed the memorization threshold
 
@@ -350,14 +350,14 @@ def get_memorized_poems_in_completions_as_in_paper(
     See Also
     --------
     get_memorized_poems_in_completions : Core memorization detection logic
-    get_genai_rhyme_completions_as_in_paper : Source data for detection
+    get_genai_rhyme_completions : Source data for detection
     """
     global _MEMORIZED_POEMS_IN_COMPLETIONS_AS_IN_PAPER
 
     if not overwrite and _MEMORIZED_POEMS_IN_COMPLETIONS_AS_IN_PAPER is not None:
         return _MEMORIZED_POEMS_IN_COMPLETIONS_AS_IN_PAPER
 
-    df_smpl = get_genai_rhyme_completions_as_in_paper(
+    df_smpl = get_genai_rhyme_completions(
         by_line=False,
         filter_recognized=False,
         verbose=verbose,
@@ -415,7 +415,7 @@ def get_unmemorized_poems_in_completions_as_in_paper(
     get_memorized_poems_in_completions_as_in_paper : Complementary function for memorized poems
     get_memorized_poems_in_completions : Core detection logic
     """
-    df_smpl = get_genai_rhyme_completions_as_in_paper(
+    df_smpl = get_genai_rhyme_completions(
         by_line=True, filter_recognized=False
     )
     return get_memorized_poems_in_completions(

@@ -108,7 +108,10 @@ def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, fo
     # df = df.sort_values('id_hash')
 
     data_name = getattr(df_smpl, '_data_name', None)
-    path = get_path('rhyme_data_for_'+data_name, as_in_paper=df_smpl._as_in_paper, as_replicated=df_smpl._as_replicated) if data_name else None
+    new_data_name = data_name
+    if data_name:
+        new_data_name = 'rhyme_data_for_'+data_name
+        path = get_path(new_data_name, as_in_paper=df_smpl._as_in_paper, as_replicated=df_smpl._as_replicated) if data_name else None
     if path and not force and os.path.exists(path):
         if verbose:
             print(f"* Loading rhyme data for {data_name} from {path}")
@@ -126,7 +129,7 @@ def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, fo
             df_rhymes.to_csv(path)
     
     odf = postprocess_rhyme_sample(df, df_rhymes, with_sample=with_sample)
-    odf._data_name = data_name
+    odf._data_name = new_data_name
     odf._sample_by = getattr(df_smpl, '_sample_by', None)
     odf._as_in_paper = df_smpl._as_in_paper
     odf._as_replicated = df_smpl._as_replicated
@@ -363,13 +366,15 @@ def plot_predicted_rhyme_avgs(
     df, 
     y='rhyme_pred_perc', 
     x='period', 
-    gby=['period'], 
+    gby=None, 
     color=None, 
     limits=[0,100], 
     min_size=10,
     title=None,
     xlabel=None,
-    ylabel=None
+    ylabel=None,
+    force=False,
+    verbose=DEFAULT_VERBOSE
 ):
     """
     Plot predicted rhyme averages with error bars using stderr from statistical analysis.
@@ -412,6 +417,27 @@ def plot_predicted_rhyme_avgs(
     p9.options.figure_size = (10, 6)
     p9.options.dpi=300
 
+
+    df_smpl = df
+    data_name = getattr(df_smpl, '_data_name', None)
+    path = get_path(data_name, as_in_paper=df_smpl._as_in_paper, as_replicated=df_smpl._as_replicated, is_figure=True) if data_name else None
+    if path and not force and os.path.exists(path):
+        if verbose:
+            print(f"* Loading rhyme data for {data_name} from {path}")
+        return try_display(path)
+    
+    if not gby:
+        if data_name:
+            if 'period_subcorpus' in data_name:
+                gby=['period','subcorpus']
+                color = 'subcorpus'
+            elif 'period' in data_name:
+                gby = ['period']
+        else:
+            gby=['period']
+
+    
+
     # Get aggregated data with means and stderr using stats function
     figdf = get_avgs_df(df, gby=gby, y=y)
 
@@ -437,14 +463,13 @@ def plot_predicted_rhyme_avgs(
         + p9.geom_errorbar(
             p9.aes(ymin='mean - stderr', ymax='mean + stderr'),
             width=0.2,
-            size=1,
+            size=.5,
             alpha=1.0
         )
     )
 
     # Add line if color grouping is used
-    if color:
-        plot += p9.geom_line(alpha=1)
+    plot += p9.geom_line(alpha=1)
 
     # Add styling and reference line
     plot += p9.geom_hline(yintercept=50, color='black', linetype='dashed', size=0.5, alpha=0.5)
@@ -463,6 +488,11 @@ def plot_predicted_rhyme_avgs(
         size='Sample Size',
         color=color.replace('_', ' ').title() if color else None,
     )
+
+    if path:
+        if verbose:
+            print(f'* Saving figure to {path}')
+            plot.save(path)
 
     return plot
 

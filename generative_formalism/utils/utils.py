@@ -110,7 +110,9 @@ def try_display(obj):
     - display(obj) [if IPython available]
     """
     try:
-        from IPython.display import display
+        from IPython.display import display, Image
+        if type(obj)==str and obj.endswith('.png'):
+            obj = Image(obj)
         display(obj)
     except (NameError, ImportError):
         pass
@@ -679,9 +681,8 @@ def documentation(func, docstring=True, signature=False, source=False, short_doc
         
         if docstring:
             if short_docstring:
-                # docstr = func.__doc__.split('Parameters')[0].strip()
-                docstr = func.__doc__.strip().split('\n')[0].strip()
-                markdown_content+=f': {docstr}'
+                dstr_hdr, dstr_bdy = get_short_docstr(func)
+                markdown_content+=f': {dstr_hdr}<br/><small><i>{dstr_bdy}</i></small>'
        
             else:
                 markdown_content += f"""
@@ -737,3 +738,20 @@ def reset_index(df):
     if has_index(df):
         df = df.reset_index()
     return df
+
+def get_short_docstr(func):
+    doc = func.__doc__
+    doc = doc.split('Parameters')[0].strip()
+    lines = doc.split('\n')
+    lines = [x.strip() for x in lines if x.strip()]
+    if not lines: return '', ''
+    return lines[0], ' '.join(lines[1:])
+
+def get_path_for_df(df, prefix='', suffix='', **kwargs):
+    data_name = getattr(df, '_data_name', None)
+    as_in_paper=getattr(df,'_as_in_paper', None)
+    as_replicated=getattr(df,'_as_in_paper', None)
+
+    if data_name and (as_in_paper or as_replicated):
+        new_data_name = prefix + data_name + suffix
+        return get_path(new_data_name, as_in_paper=as_in_paper, as_replicated=as_replicated, **kwargs)

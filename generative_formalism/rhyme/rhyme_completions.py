@@ -753,7 +753,7 @@ def get_all_rhyme_completions(*args, by_line=False, verbose=DEFAULT_VERBOSE, **k
     Parameters
     ----------
     *args
-        Positional arguments passed to both get_genai_rhyme_completions_as_in_paper()
+        Positional arguments passed to both get_genai_rhyme_completions()
         and get_genai_rhyme_completions_as_replicated().
     by_line : bool, default=False
         If True, returns line-by-line data. If False, converts to poem text format.
@@ -769,7 +769,7 @@ def get_all_rhyme_completions(*args, by_line=False, verbose=DEFAULT_VERBOSE, **k
 
     Calls
     -----
-    - get_genai_rhyme_completions_as_in_paper(*args, by_line=by_line, verbose=verbose, **kwargs)
+    - get_genai_rhyme_completions(*args, by_line=by_line, verbose=verbose, **kwargs)
     - get_genai_rhyme_completions_as_replicated(*args, by_line=by_line, verbose=verbose, **kwargs)
     - pd.concat([df1, df2]) [to combine the datasets]
     """
