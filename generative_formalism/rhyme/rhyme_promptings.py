@@ -599,12 +599,17 @@ def get_genai_rhyme_promptings(
         raise ValueError("No data sources selected")
 
     df_prompts = pd.DataFrame(ld).fillna("").set_index('id')
-    return postprocess_rhyme_promptings(
+    odf = postprocess_rhyme_promptings(
         df_prompts, 
         display=display, 
         verbose=verbose, 
         **kwargs
     )
+    odf._data_name = f'genai_rhyme_promptings'
+    odf._sample_by = '' # N/A for this data
+    odf._as_in_paper = as_in_paper
+    odf._as_replicated = as_replicated
+    return odf
 
 
 

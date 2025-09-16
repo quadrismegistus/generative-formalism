@@ -1,6 +1,16 @@
 from . import *
 
 
+def get_genai_sonnets(as_in_paper=True, as_replicated=False):
+    df = get_genai_rhyme_promptings(as_in_paper=as_in_paper, as_replicated=as_replicated)
+    df = df[df.prompt.str.contains("sonnet")].query("num_lines==14")
+    df._data_name = 'genai_sonnets'
+    df._sample_by = ''
+    df._as_in_paper = as_in_paper
+    df._as_replicated = as_replicated
+    return df
+
+
 def get_sonnet_rhythm_data(
     as_in_paper=True,
     as_replicated=False,
@@ -78,9 +88,9 @@ def get_sonnet_rhythm_data(
         odf.to_csv(path)
 
     def get_group(dob, group):
-        if group in {'Shakespeare', 'GenAI'}:
+        if group in {"Shakespeare", "GenAI"}:
             return group
-        
+
         if collapse_C17_19:
             if dob >= 1600 and dob < 1900:
                 return "C17-19"
@@ -90,7 +100,9 @@ def get_sonnet_rhythm_data(
             cent = int(dob // 100) + 1
             return f"C{cent}"
 
-    odf["group"] = [get_group(dob, group) for dob, group in zip(odf["author_dob"], odf["group"])]
+    odf["group"] = [
+        get_group(dob, group) for dob, group in zip(odf["author_dob"], odf["group"])
+    ]
     odf._sample_by = sample_by
     odf._as_in_paper = as_in_paper
     odf._as_replicated = as_replicated
@@ -223,7 +235,12 @@ def plot_stress_by_syll(
     return fig
 
 
-def plot_perfect_pentameter(df_rhythm, metric='is_unambigously_iambic_pentameter', force=False, verbose=DEFAULT_VERBOSE):
+def plot_perfect_pentameter(
+    df_rhythm,
+    metric="is_unambigously_iambic_pentameter",
+    force=False,
+    verbose=DEFAULT_VERBOSE,
+):
     """Create a horizontal bar plot showing iambic pentameter adherence by group.
 
     Generates a horizontal bar plot with error bars showing the percentage of
@@ -255,33 +272,40 @@ def plot_perfect_pentameter(df_rhythm, metric='is_unambigously_iambic_pentameter
         return display_img(path)
 
     p9.options.figure_size = (8, 6)
-    p9.options.dpi=300
+    p9.options.dpi = 300
     df_rhythm = df_rhythm.copy()
-    df_rhythm[metric]*=100
-    figdf = get_avgs_df(df_rhythm, ['group'], metric)
+    df_rhythm[metric] *= 100
+    figdf = get_avgs_df(df_rhythm, ["group"], metric)
     # figdf['mean'] = figdf['has_trochaic_substitution']
-    figdf['label'] = [f'{round(xmean,1)}%' for xmean,xstd in zip(figdf['mean'], figdf['stderr'])]
+    figdf["label"] = [
+        f"{round(xmean,1)}%" for xmean, xstd in zip(figdf["mean"], figdf["stderr"])
+    ]
 
-    l = list(reversed(figdf.sort_values('mean')['group'].tolist()))
-    figdf['group'] = pd.Categorical(figdf['group'], categories=l, ordered=True)
+    l = list(reversed(figdf.sort_values("mean")["group"].tolist()))
+    figdf["group"] = pd.Categorical(figdf["group"], categories=l, ordered=True)
 
-    fig = p9.ggplot(figdf, p9.aes(x='group', y='mean', label='label'))
-    fig += p9.geom_errorbar(p9.aes(ymin='mean - stderr', ymax='mean + stderr'), data=figdf, width=.2, size=1, alpha=.5)
-    fig+=p9.geom_point()
-    fig+=p9.geom_text(size=9, position=p9.position_nudge(x=.2))
-    fig+= p9.coord_flip()
-    fig+=p9.theme_minimal()
-    fig+=p9.labs(
-        y=f'% 10-12 syllable lines{" unambiguously" if metric=="is_unambiguously_iambic_pentameter" else " most easily"} parsed as iambic pentameter',
-        x='Sonnet source',
-        title='''Inhumanly strict metrical observance of iambic pentameter\nin LLM sonnets'''
+    fig = p9.ggplot(figdf, p9.aes(x="group", y="mean", label="label"))
+    fig += p9.geom_errorbar(
+        p9.aes(ymin="mean - stderr", ymax="mean + stderr"),
+        data=figdf,
+        width=0.2,
+        size=1,
+        alpha=0.5,
     )
-    fig+=p9.geom_hline(yintercept=50, linetype='dashed', alpha=.5)
+    fig += p9.geom_point()
+    fig += p9.geom_text(size=9, position=p9.position_nudge(x=0.2))
+    fig += p9.coord_flip()
+    fig += p9.theme_minimal()
+    fig += p9.labs(
+        y=f'% 10-12 syllable lines{" unambiguously" if metric=="is_unambiguously_iambic_pentameter" else " most easily"} parsed as iambic pentameter',
+        x="Sonnet source",
+        title="""Inhumanly strict metrical observance of iambic pentameter\nin LLM sonnets""",
+    )
+    fig += p9.geom_hline(yintercept=50, linetype="dashed", alpha=0.5)
 
-    fig+=p9.scale_y_continuous(limits=(0,100))
+    fig += p9.scale_y_continuous(limits=(0, 100))
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if verbose:
         print(f"* Saving perfect pentameter plot to {nice_path(path)}")
     fig.save(path)
     return fig
-

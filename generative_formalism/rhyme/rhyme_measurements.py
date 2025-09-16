@@ -69,7 +69,7 @@ def get_rhyme_for_txt(txt, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=Fal
     return out
 
 
-def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=False, verbose=DEFAULT_VERBOSE, **kwargs):
+def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=False, verbose=DEFAULT_VERBOSE, with_sample=False, **kwargs):
     """Compute rhyme analysis for all poems in a sample DataFrame.
 
     Applies rhyme analysis to each poem in the provided sample, using caching
@@ -87,6 +87,8 @@ def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, fo
         If True, recompute rhyme data even if cached.
     verbose : bool, default=DEFAULT_VERBOSE
         If True, show progress information.
+    with_sample : bool, default=False
+        If True, join results with original sample data.
     **kwargs
         Additional arguments (currently unused).
 
@@ -103,19 +105,33 @@ def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, fo
     df = df_smpl.fillna("")
     if 'id' in df.columns:
         df = df.set_index('id')
-    df = df.sort_values('id_hash')
+    # df = df.sort_values('id_hash')
 
-    # cache = dict(stash.items())
-    # cache = stash
+    data_name = getattr(df_smpl, '_data_name', None)
+    path = get_path('rhyme_data_for_'+data_name, as_in_paper=df_smpl._as_in_paper, as_replicated=df_smpl._as_replicated) if data_name else None
+    if path and not force and os.path.exists(path):
+        if verbose:
+            print(f"* Loading rhyme data for {data_name} from {path}")
+        df_rhymes = pd.read_csv(path).fillna("").set_index('id')
+    
+    else:
+        def get_res(txt):
+            res = get_rhyme_for_txt(txt, max_dist=max_dist, stash=stash, force=force)
+            return res
 
-    def get_res(txt):
-        # if not force and txt in cache:
-            # return cache[txt]
-        res = get_rhyme_for_txt(txt, max_dist=max_dist, stash=stash, force=force)
-        return res
+        df_rhymes = pd.DataFrame((get_res(txt) for txt in tqdm(df.txt,desc='* Getting rhymes for sample')), index=df.index)
+        if path:
+            if verbose:
+                print(f"* Saving rhyme data for {data_name} to {path}")
+            df_rhymes.to_csv(path)
+    
+    odf = postprocess_rhyme_sample(df, df_rhymes, with_sample=with_sample)
+    odf._data_name = data_name
+    odf._sample_by = getattr(df_smpl, '_sample_by', None)
+    odf._as_in_paper = df_smpl._as_in_paper
+    odf._as_replicated = df_smpl._as_replicated
 
-    df_rhymes = pd.DataFrame((get_res(txt) for txt in tqdm(df.txt,desc='* Getting rhymes for sample')), index=df.index)
-    return postprocess_rhyme_sample(df, df_rhymes)
+    return odf
 
 
 def postprocess_rhyme_sample(df_poems, df_rhymes, rhyme_threshold=4, with_sample=False):
@@ -165,7 +181,6 @@ def postprocess_rhyme_sample(df_poems, df_rhymes, rhyme_threshold=4, with_sample
     if 'id' in df.columns:
         df = df.drop_duplicates(subset='id')
         odf = df.set_index('id')
-
     if with_sample:
         odf = odf.join(df_poems, how='left', rsuffix='_from_sample')
     return odf
@@ -453,4 +468,35 @@ def plot_predicted_rhyme_avgs(
 
 
 
+def get_rhyming_accuracy_by_rhyme_threshold(df, pred_by=RHYME_PRED_FEATURE):
+    df=df[df.rhyme.isin({'y','n'})].copy().reset_index()
+    df['rhyme_bool'] = df.rhyme.map({'y':True, 'n':False})
     
+    ld=[]
+    for opt in df[pred_by].unique():
+        df['rhyme_pred'] = df[pred_by].apply(lambda x: x>=opt)
+        d=get_pred_stats(df.rhyme_pred, df.rhyme_bool)
+        d['support'] = len(df)
+        ld.append({'pred_by':pred_by, 'opt':opt, **d})
+    return pd.DataFrame(ld).groupby(['pred_by','opt']).median().sort_values('f1_score', ascending=False)
+
+
+
+def get_rhyming_preds_table(df_preds, save_latex_to=None):
+    df_preds_tbl = df_preds.reset_index().drop('pred_by',axis=1)[['opt','precision','recall','f1_score',]].set_index('opt').sort_index()
+    df_preds_tbl.columns = ['Precision', 'Recall', 'F1 score']
+    df_preds_tbl.rename_axis('# Rhymes per 10 lines', inplace=True)
+    df_preds_tbl = df_preds_tbl.round(2).applymap(lambda x: f'{x*100:.0f}%')
+    
+    if save_latex_to:
+        df_preds_tbl_latex = df_preds_tbl.copy()
+        df_preds_tbl_latex.rename_axis(df_preds_tbl_latex.index.name.replace('#', '\#'), inplace=True)
+        df_preds_tbl_latex.columns = [x.replace('#', '\#') for x in df_preds_tbl_latex.columns]
+
+        os.makedirs(os.path.dirname(save_latex_to), exist_ok=True)
+        df_preds_tbl_latex.to_latex(save_latex_to)
+    
+    return df_preds_tbl
+
+# df_preds_tbl_in_paper = get_rhyming_preds_table(df_preds_in_paper, save_latex_to=os.path.join(PATH_TEX, 'table_5.rhyme_accuracy.tex'))
+# df_preds_tbl_in_paper

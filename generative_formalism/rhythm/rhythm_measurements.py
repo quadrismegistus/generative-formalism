@@ -165,11 +165,12 @@ def get_parses_for_sample(df_smpl, stash=STASH_RHYTHM, force=False, gen=True, ve
     return odf
 
 
-def get_rhythm_for_sample(df_smpl, stash=STASH_RHYTHM, force=False, gen=True, verbose=DEFAULT_VERBOSE, **kwargs):
+def get_rhythm_for_sample(df_smpl, stash=STASH_RHYTHM, force=False, gen=True, verbose=DEFAULT_VERBOSE, with_sample=False, **kwargs):
     """Extract rhythm measurements for a sample of poems.
 
     Computes rhythm measurements (meter, stress patterns, etc.) for each poem
-    in the sample, returning a DataFrame with one row per poem.
+    in the sample, returning a DataFrame with one row per poem. Results are cached
+    to disk based on the sample's data name for efficient reuse.
 
     Parameters
     ----------
@@ -183,6 +184,8 @@ def get_rhythm_for_sample(df_smpl, stash=STASH_RHYTHM, force=False, gen=True, ve
         If True, generate new parses; if False, only use cached data.
     verbose : bool, default=DEFAULT_VERBOSE
         If True, show progress information.
+    with_sample : bool, default=False
+        If True, join results with original sample data.
     **kwargs
         Additional keyword arguments (unused).
 
@@ -195,31 +198,61 @@ def get_rhythm_for_sample(df_smpl, stash=STASH_RHYTHM, force=False, gen=True, ve
     Calls
     -----
     - _clean_df(df_smpl)
-    - get_rhythm_for_txt(txt, stash=stash, force=force, postprocess=True) [if gen=True]
+    - get_rhythm_for_txt(txt, stash=stash, force=force) [if gen=True]
     - postprocess_parses_data(stash.get(txt)) [if gen=False]
     """
     df_smpl = _clean_df(df_smpl)
-    l = []
     
-    def get_res(id,txt):
-        if gen:
-            res_df = get_rhythm_for_txt(txt, stash=stash, force=force)
+    # Check for cached rhythm data based on sample data name
+    data_name = getattr(df_smpl, '_data_name', None)
+    path = get_path('rhythm_data_for_'+data_name, as_in_paper=df_smpl._as_in_paper, as_replicated=df_smpl._as_replicated) if data_name else None
+    if path and not force and os.path.exists(path):
+        if verbose:
+            print(f"* Loading rhythm data for {data_name} from {path}")
+        df_rhythm = pd.read_csv(path).fillna("").set_index('id')
+    
+    else:
+        # Generate rhythm data if not cached or forced
+        l = []
+        
+        def get_res(id, txt):
+            if gen:
+                res_df = get_rhythm_for_txt(txt, stash=stash, force=force)
+            else:
+                res_df = postprocess_parses_data(stash.get(txt))
+            
+            if not type(res_df) == pd.DataFrame or not len(res_df):
+                return pd.DataFrame()
+            
+            return res_df.assign(id=id) if 'id' not in res_df.columns else res_df
+        
+        for (id, txt) in tqdm(zip(df_smpl.index, df_smpl.txt), desc='* Getting rhythm for sample', total=len(df_smpl)):
+            l.append(get_res(id, txt))
+        
+        if not len(l):
+            df_rhythm = pd.DataFrame()
         else:
-            res_df = postprocess_parses_data(stash.get(txt))
+            df_rhythm = pd.concat(l).set_index('id') if len(l) else pd.DataFrame()
         
-        if not type(res_df) == pd.DataFrame or not len(res_df):
-            return pd.DataFrame()
+        # Save rhythm data to cache if path is available
+        print(path, len(df_rhythm))
+        if path and len(df_rhythm):
+            if verbose:
+                print(f"* Saving rhythm data for {data_name} to {path}")
+            df_rhythm.to_csv(path)
+    
+    # Set metadata attributes on output dataframe
+    if len(df_rhythm):
+        df_rhythm._data_name = data_name
+        df_rhythm._sample_by = getattr(df_smpl, '_sample_by', None)
+        df_rhythm._as_in_paper = getattr(df_smpl, '_as_in_paper', False)
+        df_rhythm._as_replicated = getattr(df_smpl, '_as_replicated', False)
         
-        return res_df.assign(id=id) if 'id' not in res_df.columns else res_df
+        # Join with sample data if requested
+        if with_sample:
+            df_rhythm = df_rhythm.join(df_smpl, how='left', rsuffix='_from_sample')
     
-    for (id,txt) in tqdm(zip(df_smpl.index, df_smpl.txt),desc='* Getting rhythm for sample', total=len(df_smpl)):
-        l.append(get_res(id,txt))
-    
-    if not len(l):
-        return pd.DataFrame()
-    
-    odf = pd.concat(l).set_index('id') if len(l) else pd.DataFrame()
-    return odf
+    return df_rhythm
 
 
 
@@ -332,7 +365,7 @@ def get_rhythm_for_txt(txt, **kwargs):
 
 
     
-
+df_attrs = ['_data_name', '_sample_by', '_as_in_paper', '_as_replicated']
 
 def _clean_df(df):
     """Clean and prepare a poem DataFrame for rhythm analysis.
@@ -356,11 +389,15 @@ def _clean_df(df):
     - pd.DataFrame.set_index() [if 'id' or 'id_hash' columns exist]
     - pd.DataFrame.sort_values('id_hash') [if 'id_hash' column exists]
     """
+    d = {x:getattr(df, x,None) for x in df_attrs}
+    
     df = df.fillna("")
     if 'id' in df.columns:
         df = df.set_index('id')
     if 'id_hash' in df.columns:
         df = df.sort_values('id_hash')
+    for k,v in d.items():
+        setattr(df, k, v)
     return df
 
 

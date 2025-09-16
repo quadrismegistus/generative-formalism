@@ -38,6 +38,10 @@ def get_genai_rhyme_completions(
         threshold=threshold,
         filter_recognized=filter_recognized,
     )
+    df_postprocessed._data_name = f'genai_rhyme_completions'
+    df_postprocessed._sample_by = ''  # N/A for this data
+    df_postprocessed._as_in_paper = as_in_paper
+    df_postprocessed._as_replicated = as_replicated
     return df_postprocessed
 
 
@@ -117,17 +121,16 @@ def preprocess_legacy_genai_rhyme_completions(
     global PREPROCESSED_LEGACY_COMPLETION_DATA
 
     if not overwrite and PREPROCESSED_LEGACY_COMPLETION_DATA is not None:
+        print(f"* Loading legacy genai rhyme completions from {nice_path(path)}")
         return PREPROCESSED_LEGACY_COMPLETION_DATA
 
     if not overwrite and os.path.exists(path):
         if verbose: print(
             f"* Loading legacy genai rhyme completions from {nice_path(path)}"
         )
-        odf = (
-            pd.read_csv(path)
-            .fillna("")
-            .set_index(GENAI_RHYME_COMPLETIONS_INDEX)
-        )
+        odf = pd.read_csv(path).fillna("")
+        odf = odf.set_index([i for i in GENAI_RHYME_COMPLETIONS_INDEX if i in odf.columns])
+
     else:
         if verbose: print(f"* Preprocessing legacy genai rhyme completions")
         index = "_id	_first_n_lines	_model	_say_poem	_version	_timestamp".split()
@@ -227,7 +230,7 @@ def postprocess_genai_rhyme_completions(
     filter_recognized=True,
     min_num_lines=10,
     verbose=DEFAULT_VERBOSE,
-    keep_first_n_lines=True,
+    keep_first_n_lines=False,
     by_line=False,
 ):
     """Postprocess generative AI rhyme completions data.
@@ -247,7 +250,7 @@ def postprocess_genai_rhyme_completions(
     Returns:
         pd.DataFrame: Postprocessed DataFrame with cleaned and filtered data.
     """
-    odf = odf.fillna("")
+    odf = reset_index(odf).fillna("").rename(columns={'temp':'temperature','id_human':'id'})
 
     # If we have line-level data, optionally filter and either return by-line or convert to poem format
     has_line_cols = all(col in odf.columns for col in ["line_real", "line_gen"])
@@ -365,7 +368,7 @@ def filter_recognized_completions(df, threshold=95, groupby=COMPLETIONS_GROUPBY,
 # To poem format
 
 
-def to_poem_txt_format(df, keep_first_n_lines=True, verbose=DEFAULT_VERBOSE, filter_recognized=True, threshold=95):
+def to_poem_txt_format(df, keep_first_n_lines=False, verbose=DEFAULT_VERBOSE, filter_recognized=True, threshold=95):
     """Convert line-by-line completion data to poem text format.
 
     This function takes a DataFrame with line-by-line completion data and
@@ -392,6 +395,8 @@ def to_poem_txt_format(df, keep_first_n_lines=True, verbose=DEFAULT_VERBOSE, fil
             - keep_first_n_lines: Boolean flag for keeping first lines
     """
     df = df.reset_index()
+    if not 'id_human' in df.columns and 'id' in df.columns:
+        df['id_human'] = df['id']
 
     if filter_recognized:
         df = filter_recognized_completions(df, threshold=threshold, verbose=verbose)
@@ -412,8 +417,7 @@ def to_poem_txt_format(df, keep_first_n_lines=True, verbose=DEFAULT_VERBOSE, fil
 
     def get_row(gdf):
         model = gdf.model.iloc[0]
-        id_gen = gdf.id.iloc[0]
-        id_hash = get_id_hash(id_gen)
+        # id_gen = gdf.id.iloc[0]
         id_human = gdf.id_human.iloc[0] if "id_human" in gdf else None
         line_num = 0
         first_n_lines = gdf.iloc[0].first_n_lines
@@ -426,6 +430,9 @@ def to_poem_txt_format(df, keep_first_n_lines=True, verbose=DEFAULT_VERBOSE, fil
             )
 
         txt = "\n".join(lines)
+        id_gen = get_id_hash_str(f"{model}__{txt}")
+        id_hash = get_id_hash(id_gen)
+
 
         row_out = {
             "id": id_gen,
@@ -455,7 +462,7 @@ def to_poem_txt_format(df, keep_first_n_lines=True, verbose=DEFAULT_VERBOSE, fil
     )
 
 
-def parse_stash_rows_to_poems(df, keep_first_n_lines=True, verbose=DEFAULT_VERBOSE):
+def parse_stash_rows_to_poems(df, keep_first_n_lines=False, verbose=DEFAULT_VERBOSE):
     """Convert stash rows with prompts/responses to poem-level DataFrame.
 
     Processes cached completion results from the hash stash, parsing the structured
@@ -683,6 +690,7 @@ def complete_poem(
         "prompt": user_prompt,
         "system_prompt": system_prompt,
         "temperature": temperature,
+        **meta,
     }
     if not force and stash is not None and stash_key in stash:
         response = stash[stash_key]
@@ -835,15 +843,10 @@ def generate_more_completions(
     - random.choices() [for weighted random selection of models/poems]
     """
 
+    from ..corpus.sample import get_chadwyck_corpus_sampled_by
+
     # Load source poems from corpus
-    if source_poems_sample == "period":
-        source_poems = get_chadwyck_corpus_sampled_by_period()
-    elif source_poems_sample == "rhyme":
-        source_poems = get_chadwyck_corpus_sampled_by_rhyme()
-    elif source_poems_sample == "period_subcorpus":
-        source_poems = get_chadwyck_corpus_sampled_by_period_subcorpus()
-    else:
-        raise ValueError(f"Invalid source_poems_sample: {source_poems_sample}")
+    source_poems = get_chadwyck_corpus_sampled_by(source_poems_sample)
 
     if source_poems.empty:
         if verbose:
@@ -853,7 +856,7 @@ def generate_more_completions(
     # Get existing completions data
     if df_sofar is None:
         try:
-            df = get_genai_rhyme_completions_by(as_in_paper=True, as_replicated=False, by_line=True)
+            df = get_genai_rhyme_completions(by_line=True)
             if verbose:
                 print(f"* Loaded {len(df)} existing completions")
         except:
@@ -1005,9 +1008,10 @@ def generate_more_completions(
         source_poem = source_poems.loc[poem_id]
         poem_txt = source_poem["txt"]
         poem_meta = {
-            "AUTHOR": source_poem.get("author", ""),
-            "TITLE": source_poem.get("title", ""),
-            "YEAR": source_poem.get("year", ""),
+            # "AUTHOR": source_poem.get("author", ""),
+            # "TITLE": source_poem.get("title", ""),
+            # "YEAR": source_poem.get("year", ""),
+            "id_human": poem_id,
         }
 
         iterr.set_description(

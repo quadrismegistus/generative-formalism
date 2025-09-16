@@ -182,6 +182,7 @@ def get_chadwyck_corpus_sampled_by(
             odf, groupby=gby, sort_index=True, count=False, name=sample_by,
         )
 
+    odf._data_name = f'corpus_sample_by_{"_".join(sample_by) if isinstance(sample_by, list) else sample_by}'
     odf._sample_by = sample_by
     odf._as_in_paper = as_in_paper
     odf._as_replicated = as_replicated

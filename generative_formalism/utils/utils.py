@@ -728,3 +728,12 @@ def display_img(path):
         return Image(path)
     except (NameError, ImportError):
         pass
+
+def has_index(df):
+    return len([x for x in df.index.names if x is not None]) > 0
+
+def reset_index(df):
+    # only reset index if it is not already set even if multiindex
+    if has_index(df):
+        df = df.reset_index()
+    return df

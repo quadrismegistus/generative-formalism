@@ -1,7 +1,7 @@
 # Core dependencies
 python-dotenv>=0.19.0 
 prosodic @ git+https://github.com/quadrismegistus/prosodic.git@31db244b8cdd8e5f422aee9a53ba4afbcb43dc96
-hashstash[lmdb,compress]
+hashstash[rec]
 rapidfuzz
 litellm
 nest_asyncio
