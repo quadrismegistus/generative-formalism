@@ -129,7 +129,7 @@ def compute_stat_signif(
     path = get_path_for_df(df, suffix=f".stats.{valname}_by_{groupby}.csv")
     if path and not force and os.path.exists(path):
         if verbose:
-            print(f"* Loading statistics data from {path}")
+            printm(f"* Loading statistics data from `{nice_path(path)}`")
             return pd.read_csv(path)
 
     if isinstance(groupby, str):
@@ -188,7 +188,7 @@ def compute_stat_signif(
     )
     if path:
         if verbose:
-            print(f'* Saving statistics to {path}')
+            printm(f'* Saving statistics to `{nice_path(path)}`')
         odf.to_csv(path,index=False)
     return odf
 
@@ -391,7 +391,7 @@ def compare_data_by_group(
     - compute_stat_signif()
     """
     if not groupby or not valname:
-        print(f"* Warning: no groupby or valname provided")
+        printm(f"* Warning: no groupby or valname provided")
         return
 
     return compute_stat_signif(

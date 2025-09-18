@@ -98,8 +98,8 @@ def generate_more_poems_from_rhyme_prompts(
             
             if verbose and (len(valid_models) < len(model_counts) or len(valid_prompts) < len(prompt_counts)):
                 n_filtered_combos = len(overrepresented_combos)
-                print(f"  * Filtered out {n_filtered_combos} model-prompt combinations with >= {max_n_combo} entries")
-                print(f"  * Using {len(valid_models)} models and {len(valid_prompts)} prompts")
+                printm(f"  * Filtered out {n_filtered_combos} model-prompt combinations with >= {max_n_combo} entries")
+                printm(f"  * Using {len(valid_models)} models and {len(valid_prompts)} prompts")
 
         # Inverse probability weighting, adding 1 to avoid division by zero and give unseen items a chance
         model_weights = 1 / (model_counts.reindex(models, fill_value=0) + 1)
@@ -200,7 +200,7 @@ def generate_more_poems_from_rhyme_prompts(
 
 def get_legacy_df_poems1(path_pkl=PATH_RAW_PKL, verbose=DEFAULT_VERBOSE):
     if verbose:
-        print(f"  * Collecting from {path_pkl}")
+        printm(f"  * Collecting from {path_pkl}")
     if path_pkl and os.path.exists(path_pkl):
         df_poems1 = (
             pd.read_pickle(path_pkl)
@@ -209,7 +209,7 @@ def get_legacy_df_poems1(path_pkl=PATH_RAW_PKL, verbose=DEFAULT_VERBOSE):
             .rename(columns={"poem": "response", "temp": "temperature"})
         )
         if verbose:
-            print(f"  * {len(df_poems1)} generated poems")
+            printm(f"  * {len(df_poems1)} generated poems")
     else:
         df_poems1 = pd.DataFrame()
     return df_poems1
@@ -218,7 +218,7 @@ def get_legacy_df_poems1(path_pkl=PATH_RAW_PKL, verbose=DEFAULT_VERBOSE):
 def get_legacy_df_poems2(path_json=PATH_RAW_JSON, verbose=DEFAULT_VERBOSE):
     if path_json and os.path.exists(path_json):
         if verbose:
-            print(f"  * Collecting from {path_json}")
+            printm(f"  * Collecting from {path_json}")
         newdata = []
         with gzip.open(path_json, "rt") as f:
             ld = json.loads(f.read())
@@ -237,7 +237,7 @@ def get_legacy_df_poems2(path_json=PATH_RAW_JSON, verbose=DEFAULT_VERBOSE):
                 )
 
         if verbose:
-            print(f"  * {len(newdata)} generated poems")
+            printm(f"  * {len(newdata)} generated poems")
         df2 = pd.DataFrame(newdata)
         return df2
     else:
@@ -246,14 +246,14 @@ def get_legacy_df_poems2(path_json=PATH_RAW_JSON, verbose=DEFAULT_VERBOSE):
 
 def get_stash_df_poems(verbose=DEFAULT_VERBOSE):
     if verbose:
-        print(f"  * Collecting from {STASH_GENAI_RHYME_PROMPTS.path}")
+        printm(f"  * Collecting from {STASH_GENAI_RHYME_PROMPTS.path}")
     ld = STASH_GENAI_RHYME_PROMPTS.ld
     df = pd.DataFrame(ld).rename(columns={"_value": "txt", "temp": "temperature"})
     df['prompt_type'] = df.prompt.apply(lambda x: PROMPT_TO_TYPE.get(x, "Unknown"))
     df['id'] = [get_id_hash_str("__".join(vals)) for vals in df.applymap(str).values]
     df['id_hash'] = [get_id_hash(id) for id in df.id]
     if verbose:
-        print(f"  * {len(df)} generated poems")
+        printm(f"  * {len(df)} generated poems")
     return df.set_index('id')
 
 
@@ -282,7 +282,7 @@ def preprocess_rhyme_promptings(overwrite=False, verbose=DEFAULT_VERBOSE, **kwar
         df_prompts = pd.concat([df1, df2])
 
         if verbose:
-            print(f"* Saving to {path}")
+            printm(f"* Saving to `{nice_path(path)}`")
         df_prompts.to_csv(path)
 
     return df_prompts.rename(columns={'response': 'txt', 'temp':'temperature'})
@@ -367,15 +367,17 @@ def postprocess_rhyme_promptings(
     )
     df_prompts["temperature"] = pd.to_numeric(df_prompts.temperature, errors="coerce")
 
-    # print(f"* Aggregated and filtered")
+    # printm(f"* Aggregated and filtered")
     df_prompts = df_prompts[df_prompts.prompt.isin(prompts)]
     df_prompts = df_prompts[df_prompts.model.isin(models)]
 
     if verbose:
-        print(f"  * {len(df_prompts):,} generated responses")
-        print(f"  * {df_prompts.txt.nunique():,} unique poems")
-        print(f"  * {df_prompts.prompt.nunique():,} unique prompts")
-        print(f"  * {df_prompts.prompt_type.nunique():,} unique prompt types")
+        printm(f"""
+* {len(df_prompts):,} generated responses
+* {df_prompts.txt.nunique():,} unique poems
+* {df_prompts.prompt.nunique():,} unique prompts
+* {df_prompts.prompt_type.nunique():,} unique prompt types
+""")
 
     cols = ["id", "data_source", "id_hash","prompt_type", "prompt", "model", "temperature", "txt", "num_lines"]
 
@@ -402,166 +404,6 @@ def postprocess_rhyme_promptings(
         display_rhyme_promptings(odf, as_in_paper=as_in_paper, as_replicated=as_replicated, **display_kwargs)
 
     return odf
-
-
-def get_rhyme_promptings_table(df_prompts, return_display=False, as_in_paper=True, as_replicated=False, **kwargs):
-    df_prompts = df_prompts.copy().query('prompt!=""')
-    df_prompts["model9"] = df_prompts.model.apply(get_model_cleaned)
-    df_prompts["model"] = df_prompts.model.apply(rename_model)
-
-    df_prompts_stats = pd.DataFrame(
-        [
-            {
-                "prompt_type": get_nice_prompt_type(prompt_type),
-                "prompt": prompt,
-                "num_poems": len(gdf),
-                "num_poems_per_model": int(round(len(gdf) / gdf.model9.nunique())),
-            }
-            for (prompt_type, prompt), gdf in df_prompts.groupby(
-                ["prompt_type", "prompt"]
-            )
-        ]
-    )
-    df_prompts_stats["prompt_type"] = pd.Categorical(
-        df_prompts_stats["prompt_type"],
-        categories=["Rhymed", "Unrhymed", "Rhyme unspecified"],
-    )
-    df_prompts_stats = (
-        df_prompts_stats.set_index(["prompt_type", "prompt"])
-        .sort_index()
-        .rename_axis(["Prompt type", "Prompt"])[["num_poems", "num_poems_per_model"]]
-    )
-    df_prompts_stats.columns = ["# Poems", "Avg. # poems per model"]
-
-    # Build custom tabular with multirow groups by prompt_type
-    def _escape_latex_text(s, fix_typos=True):
-        s = str(s).replace("&", "\\&").replace("%", "\\%").replace("_", "\\_")
-        if fix_typos:
-            s = s.replace("an rhym", "a rhym").replace("an ryhm", "a rhym")
-        return s
-
-    tabular_lines = []
-    tabular_lines.append("\\begin{tabular}{llrr}")
-    tabular_lines.append("\\toprule")
-    tabular_lines.append(" &  & \\# Poems & \\# per model (avg.) \\\\")
-    tabular_lines.append("Prompt type & Prompt &  &  \\\\")
-    tabular_lines.append("\\midrule")
-
-    present_types = list(df_prompts_stats.index.get_level_values(0).unique())
-    for prompt_type in present_types:
-        try:
-            subdf = df_prompts_stats.xs(prompt_type, level=0, drop_level=True)
-        except KeyError:
-            continue
-        n = len(subdf)
-        rows = list(subdf.reset_index().itertuples(index=False, name=None))
-        for i, (prompt, num_poems, num_per_model) in enumerate(rows):
-            ptype_disp = _escape_latex_text(prompt_type) if i == 0 else ""
-            prompt_disp = _escape_latex_text(prompt)
-            if i == 0:
-                tabular_lines.append(
-                    f"\\multirow[t]{{{n}}}{{*}}{{{ptype_disp}}} & {prompt_disp} & {num_poems} & {num_per_model} \\\\"
-                )
-            else:
-                tabular_lines.append(
-                    f" & {prompt_disp} & {num_poems} & {num_per_model} \\\\"
-                )
-        tabular_lines.append("\\cline{1-4}")
-
-    if tabular_lines[-1] == "\\cline{1-4}":
-        tabular_lines[-1] = "\\bottomrule"
-    else:
-        tabular_lines.append("\\bottomrule")
-    tabular_lines.append("\\end{tabular}")
-
-    tabular_str = "\n".join(tabular_lines)
-
-    return df_to_latex_table(
-        inner_latex=tabular_str,
-        save_latex_to=get_path(DATA_NAME_TABLE_RHYME_PROMPTINGS, as_in_paper=as_in_paper, as_replicated=as_replicated),
-        caption="Number of poems generated for each prompt.",
-        label="tab:num_poems_rhyme_promptings",
-        position="H",
-        size="\\small",
-        singlespacing=True,
-        return_display=return_display,
-        **kwargs,
-    )
-
-
-### METER
-
-
-def get_num_poems_per_model_table(df_prompts, return_display=False, as_in_paper=True, as_replicated=False, **kwargs):
-    df = df_prompts.copy().query('prompt!=""')
-    # Normalize model names
-    df["model9"] = df.model.apply(get_model_cleaned)
-    df["model"] = df.model.apply(rename_model)
-    df = df[df.model != ""]
-    # Map prompt types to display buckets
-    _TYPE_DISP = {
-        "DO_rhyme": "Rhymed",
-        "do_NOT_rhyme": "Unrhymed",
-        "MAYBE_rhyme": "Rhyme unspecified",
-        "Unknown": "Unknown",
-    }
-    df["prompt_type_disp"] = df.prompt.apply(lambda x: PROMPT_TO_TYPE.get(x, "Unknown"))
-    df["prompt_type_disp"] = df["prompt_type_disp"].map(_TYPE_DISP).fillna("Unknown")
-
-    # Aggregate counts per display model name and category
-    df_counts = (
-        df.groupby(["model", "model9", "prompt_type_disp"])
-        .size()
-        .reset_index(name="num_poems")
-    )
-    # Pivot to columns in desired order
-    cat_order = ["Rhymed", "Unrhymed", "Rhyme unspecified"]
-    pivot = (
-        df_counts.pivot_table(
-            index=["model", "model9"],
-            columns="prompt_type_disp",
-            values="num_poems",
-            fill_value=0,
-        )
-        .reindex(columns=cat_order, fill_value=0)
-        .reset_index()
-    )
-    # Sort models alphabetically by cleaned name for stability
-    pivot = pivot.sort_values("model9")
-
-    # Build LaTeX tabular
-    def _esc(s):
-        return str(s).replace("&", "\\&").replace("%", "\\%").replace("_", "\\_")
-
-    lines = []
-    lines.append("\\begin{tabular}{lrrr}")
-    lines.append("\\toprule")
-    lines.append(" & \\# Rhymed & \\# Unrhymed & \\# Rhyme unspecified \\\\")
-    lines.append("Model &  &  &  \\\\")
-    lines.append("\\midrule")
-
-    for _, row in pivot.iterrows():
-        model_disp = _esc(row["model9"])
-        rh = int(row.get("Rhymed", 0))
-        ur = int(row.get("Unrhymed", 0))
-        mu = int(row.get("Rhyme unspecified", 0))
-        lines.append(f"{model_disp} & {rh} & {ur} & {mu} \\\\")
-
-    lines.append("\\bottomrule")
-    lines.append("\\end{tabular}")
-    tabular_str = "\n".join(lines)
-
-    return df_to_latex_table(
-        inner_latex=tabular_str,
-        save_latex_to=get_path(DATA_NAME_TABLE_NUM_POEMS_MODELS, as_in_paper=as_in_paper, as_replicated=as_replicated),
-        caption="Number of poems generated for each model and prompt category.",
-        label="tab:num_poems_models",
-        position="H",
-        size="\\small",
-        singlespacing=True,
-        return_display=return_display,
-        **kwargs,
-    )
 
 
 # Get demo
@@ -591,7 +433,7 @@ def get_genai_rhyme_promptings(
     
     if as_replicated:
         if verbose:
-            print("\n* Collecting genai rhyme promptings as replicated here")
+            printm("* Collecting genai rhyme promptings as replicated here")
         df = get_stash_df_poems(verbose=verbose).reset_index().assign(data_source='replicated')
         ld.extend(df.to_dict(orient='records'))
 
@@ -605,6 +447,7 @@ def get_genai_rhyme_promptings(
         verbose=verbose, 
         **kwargs
     )
+    odf['model_type'] = odf.model.apply(rename_model)
     odf._data_name = f'genai_rhyme_promptings'
     odf._sample_by = '' # N/A for this data
     odf._as_in_paper = as_in_paper
@@ -642,3 +485,33 @@ def get_rhyme_for_prompted_poems_by(
         verbose=verbose,
         **kwargs,
     )
+
+
+def get_human_genai_rhyme_data(sample_by='period', as_in_paper=True, as_replicated=False):
+    from ..corpus.sample import get_chadwyck_corpus_sampled_by
+    df_human = get_chadwyck_corpus_sampled_by(sample_by)
+    df_human_rhyme = get_rhyme_for_sample(df_human, with_sample=True)
+    df_human_rhyme['xcol'] = df_human_rhyme['period']
+
+    df_genai = get_genai_rhyme_promptings()
+    df_genai_rhyme = get_rhyme_for_sample(df_genai, with_sample=True)
+    df_genai_rhyme['xcol'] = df_genai_rhyme['model_type']
+
+    df_both = pd.concat([
+        df_human_rhyme.assign(source='Historical poems', prompt_type=''),
+        df_genai_rhyme.assign(source='Generative poems')
+    ]).fillna('')
+
+    subcorpus_names = {
+        '': '(n/a)',
+        'DO_rhyme': 'Rhymed',
+        'do_NOT_rhyme': 'Unrhymed',
+        'MAYBE_rhyme': 'Rhyme unspecified',
+    }
+    df_both['prompt_type'] = df_both.prompt_type.apply(lambda x: subcorpus_names.get(x,x))
+
+    df_both._data_name = 'human_genai_rhyme_data'
+    df_both._as_in_paper = as_in_paper
+    df_both._as_replicated = as_replicated
+    return df_both
+

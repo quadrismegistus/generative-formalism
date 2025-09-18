@@ -361,6 +361,11 @@ CORPUS_PERIOD_BY = 50
 
 TABLE_NUM_PERIOD_SUBCORPUS_COUNTS = 5
 TABLE_NUM_RHYME_PROMPTINGS = 2
+TABLE_NUM_NUM_POEMS_COMPLETED_MODELS = 3
+TABLE_NUM_RHYME_ACCURACY = 4
+TABLE_NUM_MEMORIZATION = 6
+TABLE_NUM_SONNETS = 7
+TABLE_NUM_TEXT_VS_INSTRUCT = 8
 
 PATH_TEX_PERIOD_SUBCORPUS_COUNTS = os.path.join(PATH_TEX, f'table.period_subcorpus_counts.tex')
 PATH_TEX_PERIOD_COUNTS = os.path.join(PATH_TEX, f'table.period_counts.tex')
@@ -424,6 +429,8 @@ PATH_RHYME_DATA_FOR_GENAI_COMPLETIONS_REPLICATED_SAMPLE = PATH_GENAI_COMPLETIONS
 PATH_ANTONIAK_ET_AL_DIR = PATH_RAWDATA + "/memorization/antoniak-et-al"
 PATH_ANTONIAK_ET_AL_CSV = PATH_RAWDATA + "/memorization/data.antoniak_et_al_memorization_results.csv.gz"
 
+PATH_CHADWYCK_HEALEY_METADATA_SMALL = PATH_RAWDATA + "/corpus/chadwyck_corpus_metadata.csv.gz"
+
 PATH_DOLMA_CSV = PATH_RAWDATA + "/memorization/data.memorized_poems_in_dolma.csv.gz"
 PATH_ALL_MEMORIZATION_DATA = PATH_RAWDATA + "/memorization/data.all_memorization_data.csv.gz"
 
@@ -444,6 +451,11 @@ DATA_NAME_TABLE_PERIOD_SUBCORPUS_COUNTS = "table.period_subcorpus_counts.tex"
 DATA_NAME_TABLE_SONNET_PERIOD_COUNTS = "table.sonnet_period_counts.tex"
 DATA_NAME_TABLE_RHYME_PROMPTINGS = "table.genai_rhyme_promptings.tex"
 DATA_NAME_TABLE_NUM_POEMS_MODELS = "table.num_poems_models.tex"
+DATA_NAME_TABLE_NUM_POEMS_COMPLETED_MODELS = "table.num_poems_completed_models.tex"
+DATA_NAME_TABLE_RHYME_ACCURACY = "table.rhyme_accuracy.tex"
+DATA_NAME_TABLE_MEMORIZATION = "table.memorization.tex"
+DATA_NAME_TABLE_SONNETS = "table.sonnets.tex"
+DATA_NAME_TABLE_TEXT_VS_INSTRUCT = "table.text_vs_instruct.tex"
 
 # Rhyme completion data files
 DATA_NAME_GENAI_RHYME_COMPLETIONS = "genai_rhyme_completions"
@@ -453,7 +465,7 @@ DATA_NAME_RHYME_DATA_BY_PERIOD_SUBCORPUS = "rhyme_data_by_period_subcorpus"
 DATA_NAME_RHYME_DATA_BY_SONNET_PERIOD = "rhyme_data_by_sonnet_period"
 
 
-def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False, is_figure=False, ext_figure = '.png'):
+def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False, is_figure=False, ext_figure = '.png', is_table=False):
     def has_ext(path):
         return bool(os.path.splitext(path)[1])
     
@@ -472,15 +484,29 @@ def get_path(data_name, ext='.csv.gz', as_in_paper=True, as_replicated=False, is
         
     
     # Handle tex files by adding tex subdirectory
-    if data_name.endswith('.tex'):
+    if data_name.endswith('.tex') or is_table:
         data_name = os.path.join('tex', data_name)
-    
-    return os.path.join(
+        if not data_name.endswith('.tex'):
+            data_name = data_name.replace('.csv.gz','').replace('.csv','') + '.tex'
+    out = os.path.join(
         PATH_DATA,
         data_fldr,
         data_name
     )
 
+    if is_figure:
+        out = out.replace('.csv.gz','.png').replace('.csv','.png')
+    return out
+
+
+def get_path_for_df(df, prefix='', suffix='', **kwargs):
+    data_name = getattr(df, '_data_name', None)
+    as_in_paper=getattr(df,'_as_in_paper', None)
+    as_replicated=getattr(df,'_as_replicated', None)
+
+    if data_name and (as_in_paper or as_replicated):
+        new_data_name = prefix + data_name + suffix
+        return get_path(new_data_name, as_in_paper=as_in_paper, as_replicated=as_replicated, **kwargs)
 
 
 METER_OPTS = {

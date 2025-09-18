@@ -14,6 +14,7 @@ numpy
 scipy
 scikit-learn
 plotnine
+adjustText
 
 # Progress bars and utilities
 tqdm
@@ -30,3 +31,4 @@ sphinx-book-theme
 nbconvert
 nbformat
 jupyter-cache
+

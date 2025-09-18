@@ -208,7 +208,7 @@ def get_rhythm_for_sample(df_smpl, stash=STASH_RHYTHM, force=False, gen=True, ve
     path = get_path('rhythm_data_for_'+data_name, as_in_paper=df_smpl._as_in_paper, as_replicated=df_smpl._as_replicated) if data_name else None
     if path and not force and os.path.exists(path):
         if verbose:
-            print(f"* Loading rhythm data for {data_name} from {path}")
+            printm(f"* Loading rhythm data for `{data_name}` from `{nice_path(path)}`")
         df_rhythm = pd.read_csv(path).fillna("").set_index('id')
     
     else:
@@ -235,10 +235,9 @@ def get_rhythm_for_sample(df_smpl, stash=STASH_RHYTHM, force=False, gen=True, ve
             df_rhythm = pd.concat(l).set_index('id') if len(l) else pd.DataFrame()
         
         # Save rhythm data to cache if path is available
-        print(path, len(df_rhythm))
         if path and len(df_rhythm):
             if verbose:
-                print(f"* Saving rhythm data for {data_name} to {path}")
+                printm(f"* Saving rhythm data for `{data_name}` to `{nice_path(path)}`")
             df_rhythm.to_csv(path)
     
     # Set metadata attributes on output dataframe

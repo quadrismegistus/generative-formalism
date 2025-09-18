@@ -213,3 +213,4 @@ chadwyck_poetry
 data.mdb
 docs/book
 data/stash
+notebooks/tmp*

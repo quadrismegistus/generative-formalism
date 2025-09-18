@@ -55,14 +55,14 @@ def sample_chadwyck_corpus(
     """
 
     if not len(df_corpus):
-        print(f"* Warning: No corpus to sample")
+        printm(f"* Warning: No corpus to sample")
         return pd.DataFrame()
 
     if verbose:
-        print(
+        printm(
             f"* Sampling corpus by {sample_by} (min {min_sample_n}, max {max_sample_n})"
         )
-        print(f"* Original sample size: {len(df_corpus)}")
+        printm(f"* Original sample size: {len(df_corpus)}")
 
     # sort by id hash
     if sort_id_hash:
@@ -86,7 +86,7 @@ def sample_chadwyck_corpus(
             df = df.sort_values("id_hash")
 
     if verbose:
-        print(f"* Final sample size: {len(df)}\n")
+        printm(f"* Final sample size: {len(df)}\n")
     s = df.groupby(sample_by).size()
 
     if verbose:
@@ -166,7 +166,7 @@ def get_chadwyck_corpus_sampled_by(
         # Load precomputed sample from paper
         path = get_path(data_name, as_in_paper=True, as_replicated=False)
         if not os.path.exists(path):
-            raise FileNotFoundError(f"Precomputed sample not found at {path}")
+            raise FileNotFoundError(f"Precomputed sample not found at {nice_path(path)}")
         odf = pd.read_csv(path).fillna("").set_index("id").sort_values("id_hash")
     else:
         raise ValueError("Must specify as_in_paper, as_replicated")
@@ -312,7 +312,7 @@ def get_chadwyck_corpus_sampled_by_replicated(
 
     sort_id_hash = not as_replicated
     if verbose:
-        print(f'* Getting corpus sampled by {sample_by}')
+        printm(f'*Getting corpus sampled by `{sample_by}`')
 
     # Map sample_by to the appropriate data name
     data_name_map = {
@@ -330,7 +330,7 @@ def get_chadwyck_corpus_sampled_by_replicated(
     )
 
     if force or not os.path.exists(path):
-        print(f"* Generating {sample_by} sample")
+        printm(f"* Generating `{sample_by}` sample")
         odf = gen_chadwyck_corpus_sampled_by(
             sample_by,
             display=display,
@@ -341,7 +341,7 @@ def get_chadwyck_corpus_sampled_by_replicated(
         if len(odf):
             save_sample(odf, path, overwrite=True)
     else:
-        print(f"* Loading {sample_by} sample from {path}")
+        printm(f"* Loading `{sample_by}` sample from `{nice_path(path)}`")
         odf = pd.read_csv(path).set_index("id")
         if sort_id_hash:
             odf = odf.sort_values("id_hash")
@@ -353,6 +353,6 @@ def get_chadwyck_corpus_sampled_by_replicated(
     #         img = get_period_subcorpus_table(odf, return_display=True)
     #         display(img)
     #     except (NameError, ImportError):
-    #         print(f'* Warning: Could not display image')
+    #         printm(f'* Warning: Could not display image')
 
     return odf

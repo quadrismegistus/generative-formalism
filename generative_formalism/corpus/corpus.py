@@ -14,7 +14,21 @@ CORPUS = None
 
 # === Metadata loading and normalization ===
 
-def get_chadwyck_corpus_metadata(
+def get_chadwyck_corpus_metadata(force=False, verbose=DEFAULT_VERBOSE) -> pd.DataFrame:
+    global CORPUS_METADATA
+    if CORPUS_METADATA is not None:
+        return CORPUS_METADATA
+
+    if not force and os.path.exists(PATH_CHADWYCK_HEALEY_METADATA_SMALL):
+        if verbose:
+            printm(f'* Loading from `{PATH_CHADWYCK_HEALEY_METADATA_SMALL}`')
+        odf = pd.read_csv(PATH_CHADWYCK_HEALEY_METADATA_SMALL).set_index('id')
+    else:
+        odf = preprocess_chadwyck_corpus_metadata(verbose=verbose)
+    CORPUS_METADATA = odf
+    return odf
+
+def preprocess_chadwyck_corpus_metadata(
     fields=CHADWYCK_CORPUS_FIELDS,
     period_by=CORPUS_PERIOD_BY,
     download_if_necessary=True,
@@ -47,7 +61,7 @@ def get_chadwyck_corpus_metadata(
     global CORPUS_METADATA
     if CORPUS_METADATA is not None:
         if verbose:
-            print('* Loading corpus metadata from memory')
+            printm('* Loading corpus metadata from memory')
         return CORPUS_METADATA
     
     if not os.path.exists(PATH_CHADWYCK_HEALEY_METADATA):
@@ -56,7 +70,7 @@ def get_chadwyck_corpus_metadata(
         return pd.DataFrame(columns=fields.keys()).set_index('id')
     
     if verbose:
-        print(f'* Loading metadata from {PATH_CHADWYCK_HEALEY_METADATA}')
+        printm(f'* Loading metadata from `{PATH_CHADWYCK_HEALEY_METADATA}`')
 
     df = pd.read_csv(PATH_CHADWYCK_HEALEY_METADATA).fillna("")
     df['author_dob'] = pd.to_numeric(df['author_dob'], errors='coerce')
@@ -64,7 +78,7 @@ def get_chadwyck_corpus_metadata(
     df['id_hash'] = [get_id_hash(x) for x in df['id']]
     
     if verbose:
-        print(f'* Loaded {len(df)} rows of metadata')
+        printm(f'* Loaded {len(df)} rows of metadata')
 
     def get_attdbase_str(x):
         if not x:
@@ -103,11 +117,11 @@ def get_chadwyck_corpus_metadata(
     if min_author_dob is not None:
         odf = odf[odf.author_dob >= min_author_dob]
         if verbose:
-            print(f'* Filtering: {len(odf):,} rows after author birth year >= {min_author_dob}')
+            printm(f'*Filtering: {len(odf):,} rows after author birth year >= {min_author_dob}')
     if max_author_dob is not None:
         odf = odf[odf.author_dob <= max_author_dob]
         if verbose:
-            print(f'* Filtering: {len(odf):,} rows after author birth year <= {max_author_dob}')
+            printm(f'*Filtering: {len(odf):,} rows after author birth year <= {max_author_dob}')
 
     def get_period_dob(x, ybin=period_by):
         if not x:
@@ -120,16 +134,17 @@ def get_chadwyck_corpus_metadata(
     if min_num_lines is not None:
         odf = odf[odf.num_lines >= min_num_lines]
         if verbose:
-            print(f'* Filtering: {len(odf):,} rows after number of lines >= {min_num_lines}')
+            printm(f'*Filtering: {len(odf):,} rows after number of lines >= {min_num_lines}')
     if max_num_lines is not None:
         odf = odf[odf.num_lines <= max_num_lines]
         if verbose:
-            print(f'* Filtering: {len(odf):,} rows after number of lines <= {max_num_lines}')
+            printm(f'*Filtering: {len(odf):,} rows after number of lines <= {max_num_lines}')
 
     odf = odf.drop_duplicates('id').set_index('id').sort_values('id_hash')
     if verbose:
-        print(f'* Dropped duplicates and set index')
+        printm(f'*Dropped duplicates and set index')
     CORPUS_METADATA = odf
+    odf.to_csv(PATH_CHADWYCK_HEALEY_METADATA_SMALL)
     return odf
 
 
@@ -161,10 +176,10 @@ def download_chadwyck_corpus_metadata(overwrite=False, verbose=DEFAULT_VERBOSE):
     if URL_CHADWYCK_HEALEY_METADATA and (overwrite or not os.path.exists(PATH_CHADWYCK_HEALEY_METADATA)):
         PATH_CHADWYCK_HEALEY_METADATA_ZIP = PATH_CHADWYCK_HEALEY_METADATA+'.zip'
         if verbose:
-            print(f"* Downloading metadata to {PATH_CHADWYCK_HEALEY_METADATA_ZIP}")
+            printm(f"* Downloading metadata to `{PATH_CHADWYCK_HEALEY_METADATA_ZIP}`")
         download_file(URL_CHADWYCK_HEALEY_METADATA, PATH_CHADWYCK_HEALEY_METADATA_ZIP)
         if verbose:
-            print(f'* Unzipping metadata to {PATH_CHADWYCK_HEALEY_METADATA}')
+            printm(f'*Unzipping metadata to `{PATH_CHADWYCK_HEALEY_METADATA}`')
         unzip_file(PATH_CHADWYCK_HEALEY_METADATA_ZIP, PATH_CHADWYCK_HEALEY_METADATA)
 
 def download_chadwyck_corpus_txt(overwrite=False, verbose=DEFAULT_VERBOSE):
@@ -195,11 +210,11 @@ def download_chadwyck_corpus_txt(overwrite=False, verbose=DEFAULT_VERBOSE):
     if URL_CHADWYCK_HEALEY_TXT and (overwrite or not os.path.exists(PATH_CHADWYCK_HEALEY_TXT)):
         PATH_CHADWYCK_HEALEY_TXT_ZIP = PATH_CHADWYCK_HEALEY_TXT+'.zip'
         if verbose:
-            print(f"* Downloading corpus text to {PATH_CHADWYCK_HEALEY_TXT_ZIP}")
+            printm(f"* Downloading corpus text to `{PATH_CHADWYCK_HEALEY_TXT_ZIP}`")
         download_file(URL_CHADWYCK_HEALEY_TXT, PATH_CHADWYCK_HEALEY_TXT_ZIP)
 
         if verbose:
-            print(f'* Unzipping corpus text to {PATH_CHADWYCK_HEALEY_TXT}')
+            printm(f'*Unzipping corpus text to `{PATH_CHADWYCK_HEALEY_TXT}`')
         unzip_file(PATH_CHADWYCK_HEALEY_TXT_ZIP, PATH_CHADWYCK_HEALEY_TXT)
 
 
@@ -266,7 +281,7 @@ def get_chadwyck_corpus_texts(df_meta, clean_poem=True, verbose=DEFAULT_VERBOSE)
     - tqdm(df_meta.reset_index().id, desc='  ') [for progress display]
     """
     if verbose:
-        print(f'* Loading {len(df_meta)} texts')
+        printm(f'* Loading {len(df_meta)} texts')
     return [
         get_txt(id, clean_poem=clean_poem)
         for id in tqdm(df_meta.reset_index().id, desc='  ')
@@ -304,10 +319,10 @@ def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, downl
     """
     global CORPUS
     if verbose:
-        print(f'* Loading Chadwyck-Healey corpus (metadata + txt)')
+        printm(f'* Loading Chadwyck-Healey corpus (metadata + txt)')
 
     if not force and CORPUS is not None:
-        # print('* Loading corpus from memory')
+        # printm('* Loading corpus from memory')
         return CORPUS
 
     df_meta = get_chadwyck_corpus_metadata(*args, **kwargs) if df_meta is None else df_meta
@@ -318,7 +333,7 @@ def get_chadwyck_corpus(df_meta=None, *args, clean_poem=True, force=False, downl
         download_chadwyck_corpus_txt()
     
     if not os.path.exists(PATH_CHADWYCK_HEALEY_TXT):
-        print(f'* Warning: No corpus text files to load')
+        printm(f'* Warning: No corpus text files to load')
         return pd.DataFrame()
 
     df_meta['txt'] = get_chadwyck_corpus_texts(df_meta, clean_poem=clean_poem)
@@ -352,16 +367,20 @@ def check_chadwyck_healey_paths():
     - os.path.exists(PATH_CHADWYCK_HEALEY_METADATA)
     """
     # Get the Chadwyck-Healey corpus path
-    path_txt_exists = PATH_CHADWYCK_HEALEY_TXT and os.path.exists(PATH_CHADWYCK_HEALEY_TXT)
-    path_metadata_exists = PATH_CHADWYCK_HEALEY_METADATA and os.path.exists(PATH_CHADWYCK_HEALEY_METADATA)
+    path_txt = PATH_CHADWYCK_HEALEY_TXT
+    path_meta = PATH_CHADWYCK_HEALEY_METADATA_SMALL
+    path_txt_exists = path_txt and os.path.exists(path_txt)
+    path_metadata_exists = path_meta and os.path.exists(path_meta)
     url_txt_exists = URL_CHADWYCK_HEALEY_TXT and URL_CHADWYCK_HEALEY_TXT
     url_metadata_exists = URL_CHADWYCK_HEALEY_METADATA and URL_CHADWYCK_HEALEY_METADATA
-    print(f"""{"✓" if path_txt_exists else "X"} Chadwyck-Healey corpus path: {PATH_CHADWYCK_HEALEY_TXT}""")
-    print(f"""{"✓" if path_metadata_exists else "X"} Chadwyck-Healey metadata path: {PATH_CHADWYCK_HEALEY_METADATA}""")
+    out = f'''
+* {"✓" if path_txt_exists else "X"} Chadwyck-Healey corpus path: `{nice_path(path_txt)}`
+* {"✓" if path_metadata_exists else "X"} Chadwyck-Healey metadata path: `{nice_path(path_meta)}`
+* {"✓" if url_metadata_exists else "X"} Metadata file URL set in environment (.env or shell)
+* {"✓" if url_txt_exists else "X"} Corpus text file URL set in environment (.env or shell)
+'''
 
-    # Download if necessary?
-    print(f"""{"✓" if url_metadata_exists else "X"} Metadata file URL set in environment (.env or shell)""")
-    print(f"""{"✓" if url_txt_exists else "X"} Corpus text file URL set in environment (.env or shell)""")
+    printm(out)
 
     return bool((path_txt_exists and path_metadata_exists) or (url_txt_exists and url_metadata_exists))
 

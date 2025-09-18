@@ -15,13 +15,15 @@ import zipfile
 import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import plotnine as p9
 import nest_asyncio
 import prosodic
 from hashstash import stashed_result, JSONLHashStash, HashStash
 from hashstash.engines.jsonl import JSONLHashStash
 from rapidfuzz import fuzz
+from functools import lru_cache
+cache = lru_cache(maxsize=None)
 
 try:
     from litellm import acompletion
@@ -37,6 +39,7 @@ load_dotenv()
 p9.options.figure_size = (10, 5)
 p9.options.dpi = 300
 pd.options.display.max_rows = 5
+pd.options.display.max_columns = None
 
 prosodic.USE_CACHE = False
 prosodic.LOG_LEVEL = 'CRITICAL'

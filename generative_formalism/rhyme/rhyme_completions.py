@@ -1,7 +1,7 @@
 from . import *
 
 
-
+@cache
 def get_genai_rhyme_completions(
     *args,
     as_in_paper=True,
@@ -12,6 +12,7 @@ def get_genai_rhyme_completions(
     threshold=95,
     filter_recognized=True,
     path=None,
+    line_gen=True,
     **kwargs,
 ):
     """Unified accessor for genai rhyme completions with source selection.
@@ -21,6 +22,8 @@ def get_genai_rhyme_completions(
 
     Exactly one of as_in_paper, as_replicated should be True.
     """
+    from ..corpus.corpus import get_chadwyck_corpus_metadata
+
     flags_true = sum([bool(as_in_paper), bool(as_replicated)])
     if flags_true != 1:
         raise ValueError("Specify exactly one of as_in_paper, as_replicated")
@@ -37,8 +40,13 @@ def get_genai_rhyme_completions(
         min_num_lines=min_num_lines,
         threshold=threshold,
         filter_recognized=filter_recognized,
+        line_gen=line_gen,
     )
-    df_postprocessed._data_name = f'genai_rhyme_completions'
+
+    df_meta = get_chadwyck_corpus_metadata()
+    df_postprocessed = df_postprocessed.reset_index().merge(df_meta, left_on='id_human', right_on='id', suffixes=['', '_from_meta'], how='left')
+
+    df_postprocessed._data_name = f'genai_rhyme_completions_{"real" if not line_gen else "gen"}'
     df_postprocessed._sample_by = ''  # N/A for this data
     df_postprocessed._as_in_paper = as_in_paper
     df_postprocessed._as_replicated = as_replicated
@@ -121,39 +129,39 @@ def preprocess_legacy_genai_rhyme_completions(
     global PREPROCESSED_LEGACY_COMPLETION_DATA
 
     if not overwrite and PREPROCESSED_LEGACY_COMPLETION_DATA is not None:
-        print(f"* Loading legacy genai rhyme completions from {nice_path(path)}")
+        printm(f"* Loading genai rhyme completions from `{nice_path(path)}`")
         return PREPROCESSED_LEGACY_COMPLETION_DATA
 
     if not overwrite and os.path.exists(path):
-        if verbose: print(
-            f"* Loading legacy genai rhyme completions from {nice_path(path)}"
+        if verbose: printm(
+            f"* Loading genai rhyme completions from `{nice_path(path)}`"
         )
         odf = pd.read_csv(path).fillna("")
         odf = odf.set_index([i for i in GENAI_RHYME_COMPLETIONS_INDEX if i in odf.columns])
 
     else:
-        if verbose: print(f"* Preprocessing legacy genai rhyme completions")
+        if verbose: printm(f"* Preprocessing genai rhyme completions")
         index = "_id	_first_n_lines	_model	_say_poem	_version	_timestamp".split()
         df3 = (
-            pd.read_pickle(f"{PATH_RAWDATA}/data.output.gen_poems.v3.pkl")
+            pd.read_pickle(f"{PATH_RAWDATA}/rhyme_completions/data.output.gen_poems.v3.pkl.gz")
             .assign(_say_poem=True)
             .reset_index()
             .set_index(index)
         )
         df4 = (
-            pd.read_pickle(f"{PATH_RAWDATA}/data.output.gen_poems.v4.pkl")
+            pd.read_pickle(f"{PATH_RAWDATA}/rhyme_completions/data.output.gen_poems.v4.pkl.gz")
             .assign(_say_poem=True)
             .reset_index()
             .set_index(index)
         )
         df5 = (
-            pd.read_pickle(f"{PATH_RAWDATA}/data.output.gen_poems.v5.pkl")
+            pd.read_pickle(f"{PATH_RAWDATA}/rhyme_completions/data.output.gen_poems.v5.pkl.gz")
             .assign(_say_poem=True)
             .reset_index()
             .set_index(index)
         )
-        df6 = pd.read_pickle(f"{PATH_RAWDATA}/data.output.gen_poems.v6.pkl")
-        df7 = pd.read_pickle(f"{PATH_RAWDATA}/data.output.gen_poems.v7.pkl")
+        df6 = pd.read_pickle(f"{PATH_RAWDATA}/rhyme_completions/data.output.gen_poems.v6.pkl.gz")
+        df7 = pd.read_pickle(f"{PATH_RAWDATA}/rhyme_completions/data.output.gen_poems.v7.pkl.gz")
 
         df = pd.concat(
             [
@@ -181,7 +189,6 @@ def preprocess_legacy_genai_rhyme_completions(
             ]
         )
 
-        df = df.drop_duplicates(["model", "id", "id_gen", "stanza_num", "line_num"])
         df = df[df.say_poem]
         df.drop(columns=["say_poem"], inplace=True)
         df = df[~df.model.str.contains("poetry")]
@@ -193,12 +200,12 @@ def preprocess_legacy_genai_rhyme_completions(
 
         odf = df.rename(columns={"id": "id_human", "id_gen": "id"})
         odf.drop(columns=["timestamp"], inplace=True)
+        odf = odf.drop_duplicates(["model", "id_human", "stanza_num", "line_num"])
 
         odf = odf.set_index(GENAI_RHYME_COMPLETIONS_INDEX)
 
-
-        if verbose: print(
-            f"* Saving legacy genai rhyme completions to {nice_path(path)}"
+        if verbose: printm(
+            f"* Saving genai rhyme completions to {nice_path(path)}"
         )
         odf.to_csv(path)
 
@@ -206,21 +213,22 @@ def preprocess_legacy_genai_rhyme_completions(
 
     # if verbose:
         # human_ids = odf.reset_index().id_human.unique()
-        # print(f"* Found {len(human_ids)} unique human poems for input to models")
+        # printm(f"* Found {len(human_ids)} unique human poems for input to models")
         # gen_ids = odf.reset_index().id.unique()
-        # print(f"* Found {len(gen_ids)} unique generated poems")
+        # printm(f"* Found {len(gen_ids)} unique generated poems")
 
-        # print("* Distribution of input poem lengths")
+        # printm("* Distribution of input poem lengths")
         # describe_numeric(
         #     pd.Series([len(gdf) for g, gdf in odf.groupby("id_human")], name="num_lines")
         # )
 
-        # print("* Distribution of output poem lengths")
+        # printm("* Distribution of output poem lengths")
         # describe_numeric(
         #     pd.Series([len(gdf) for g, gdf in odf.groupby("id")], name="num_lines"),
         #     fixed_range=(MIN_NUM_LINES, MAX_NUM_LINES),
         # )
 
+    ## Reattach metadata
     return odf
 
 
@@ -232,6 +240,7 @@ def postprocess_genai_rhyme_completions(
     verbose=DEFAULT_VERBOSE,
     keep_first_n_lines=False,
     by_line=False,
+    line_gen=True,
 ):
     """Postprocess generative AI rhyme completions data.
 
@@ -250,7 +259,7 @@ def postprocess_genai_rhyme_completions(
     Returns:
         pd.DataFrame: Postprocessed DataFrame with cleaned and filtered data.
     """
-    odf = reset_index(odf).fillna("").rename(columns={'temp':'temperature','id_human':'id'})
+    odf = reset_index(odf).fillna("").rename(columns={'temp':'temperature'})
 
     # If we have line-level data, optionally filter and either return by-line or convert to poem format
     has_line_cols = all(col in odf.columns for col in ["line_real", "line_gen"])
@@ -260,6 +269,7 @@ def postprocess_genai_rhyme_completions(
         # Only attempt filtering if needed columns are present
         if all(col in odf.columns for col in ["line_real", "line_gen"]):
             # Test for line similarity
+            tqdm.pandas(desc='Computing line similarity')
             odf["line_sim"] = odf.progress_apply(
                 lambda row: (
                     fuzz.ratio(row.line_real.strip(), row.line_gen.strip())
@@ -276,7 +286,7 @@ def postprocess_genai_rhyme_completions(
             odf = filter_recognized_completions(odf, threshold=threshold, verbose=verbose)
 
         if by_line:
-            return odf
+            return odf.rename(columns={'id':'id_human'})
 
         poems_df = to_poem_txt_format(
             odf,
@@ -284,6 +294,7 @@ def postprocess_genai_rhyme_completions(
             verbose=verbose,
             filter_recognized=False,  # already filtered above if requested
             threshold=threshold,
+            line_gen=line_gen
         )
 
         # Compute hashes if possible
@@ -340,7 +351,7 @@ def filter_recognized_completions(df, threshold=95, groupby=COMPLETIONS_GROUPBY,
     if not required_cols.issubset(set(df.columns)):
         if verbose:
             missing = ", ".join(sorted(required_cols - set(df.columns)))
-            print(f"* Skipping similarity computation (missing columns: {missing})")
+            printm(f"* Skipping similarity computation (missing columns: {missing})")
         if "line_sim" not in df.columns:
             df["line_sim"] = np.nan
         return df
@@ -350,17 +361,17 @@ def filter_recognized_completions(df, threshold=95, groupby=COMPLETIONS_GROUPBY,
     gby = groupby
     num1 = len(df.groupby(gby))
     grps = []
-    for g, gdf in tqdm(df.groupby(gby), desc='* Filtering out recognized completions', total=num1):
+    for g, gdf in tqdm(df.groupby(gby), desc='Filtering out recognized completions', total=num1):
         if gdf.line_sim.max() < threshold:
             grps.append(gdf)
     if not grps:
         if verbose:
-            print(f"* Filtered out {num1} recognized poems (none passed threshold)")
+            printm(f"* Filtered out {num1} recognized poems (none passed threshold)")
         return df.iloc[0:0]
     df_safe = pd.concat(grps)
     
     if verbose:
-        print(f"* Filtered out {num1 - len(grps)} recognized poems")
+        printm(f"* Filtered out {num1 - len(grps)} recognized poems")
     return df_safe
 
 
@@ -368,7 +379,7 @@ def filter_recognized_completions(df, threshold=95, groupby=COMPLETIONS_GROUPBY,
 # To poem format
 
 
-def to_poem_txt_format(df, keep_first_n_lines=False, verbose=DEFAULT_VERBOSE, filter_recognized=True, threshold=95):
+def to_poem_txt_format(df, keep_first_n_lines=False, verbose=DEFAULT_VERBOSE, filter_recognized=True, threshold=95, line_gen=True):
     """Convert line-by-line completion data to poem text format.
 
     This function takes a DataFrame with line-by-line completion data and
@@ -398,12 +409,14 @@ def to_poem_txt_format(df, keep_first_n_lines=False, verbose=DEFAULT_VERBOSE, fi
     if not 'id_human' in df.columns and 'id' in df.columns:
         df['id_human'] = df['id']
 
+    line_col = 'line_gen' if line_gen else 'line_real'
+
     if filter_recognized:
         df = filter_recognized_completions(df, threshold=threshold, verbose=verbose)
 
     num_poems = df.id.nunique()
     if verbose:
-        print(
+        printm(
             f"* Converting to poem txt format"
             + (
                 " (keeping first lines from original poem)"
@@ -423,10 +436,10 @@ def to_poem_txt_format(df, keep_first_n_lines=False, verbose=DEFAULT_VERBOSE, fi
         first_n_lines = gdf.iloc[0].first_n_lines
 
         if not keep_first_n_lines:
-            lines = list(gdf.line_gen[first_n_lines:])
+            lines = list(gdf[line_col][first_n_lines:])
         else:
             lines = list(gdf.line_real[:first_n_lines]) + list(
-                gdf.line_gen[first_n_lines:]
+                gdf[line_col][first_n_lines:]
             )
 
         txt = "\n".join(lines)
@@ -782,8 +795,8 @@ def get_all_rhyme_completions(*args, by_line=False, verbose=DEFAULT_VERBOSE, **k
         by_line=by_line, verbose=verbose, **kwargs
     )
     if verbose:
-        print(f"* Loaded {len(df1)} existing completions")
-        print(f"* Loaded {len(df2)} replicated completions")
+        printm(f"* Loaded {len(df1)} existing completions")
+        printm(f"* Loaded {len(df2)} replicated completions")
     return pd.concat([df1, df2])
 
 
@@ -858,11 +871,11 @@ def generate_more_completions(
         try:
             df = get_genai_rhyme_completions(by_line=True)
             if verbose:
-                print(f"* Loaded {len(df)} existing completions")
+                printm(f"* Loaded {len(df)} existing completions")
         except:
             df = pd.DataFrame()
             if verbose:
-                print("* No existing completions found, starting fresh")
+                printm("* No existing completions found, starting fresh")
     else:
         df = df_sofar
 
@@ -897,7 +910,7 @@ def generate_more_completions(
                 continue
 
         if verbose and len(overrepresented_combos) > 0:
-            print(
+            printm(
                 f"  * Found {len(overrepresented_combos)} overrepresented model-poem-first_n_lines combinations"
             )
 
@@ -1101,10 +1114,47 @@ def get_stash_df_completions(
     - stash.df.rename(columns={"_value": "response"}).reset_index() [to extract data]
     """
     if verbose:
-        print(f"* Collecting from {stash.path}")
+        printm(f"* Collecting from `{stash.path}`")
     odf = stash.df.rename(columns={"_value": "response"}).reset_index()
     if verbose:
-        print(f"  * {len(odf)} generated completions")
+        printm(f"  * {len(odf)} generated completions")
     return odf
 
 
+def get_rhyme_for_genai_human_completions():
+    df_genai_rhyme_completions_genai = get_genai_rhyme_completions(by_line=False, line_gen=True)
+    df_genai_rhyme_completions_genai_rhyme = get_rhyme_for_sample(
+        df_genai_rhyme_completions_genai,
+        force=False,
+        with_sample=True,
+    )
+
+    df_genai_rhyme_completions_human = get_genai_rhyme_completions(by_line=False, line_gen=False)
+    df_genai_rhyme_completions_human_rhyme = get_rhyme_for_sample(
+        df_genai_rhyme_completions_human, 
+        force=False, 
+        with_sample=True
+    )
+
+    df = pd.concat([
+        df_genai_rhyme_completions_genai_rhyme, 
+        df_genai_rhyme_completions_human_rhyme.assign(model=HIST)
+    ])
+    df = df[df.num_lines_prosodic>=10]
+
+    df._data_name = 'genai_rhyme_completions_human_genai'
+    df._as_in_paper = df_genai_rhyme_completions_genai_rhyme._as_in_paper
+    df._as_replicated = df_genai_rhyme_completions_genai_rhyme._as_replicated
+    return df
+
+def get_text_vs_instruct_completions():
+    df_genai_rhyme_completions = get_genai_rhyme_completions(by_line=False)
+    df = df_genai_rhyme_completions[df_genai_rhyme_completions.model.isin({'ollama/llama3.1:8b', 'ollama/llama3.1:8b-text-q4_K_M'})]
+    def rename_model(model):
+        return 'llama3.1:instruct' if not 'text' in model else 'llama3.1:text'
+
+    df['model'] = df.model.apply(rename_model)
+    df._data_name = 'genai_rhyme_completions_text_vs_instruct'
+    df._as_in_paper = df_genai_rhyme_completions._as_in_paper
+    df._as_replicated = df_genai_rhyme_completions._as_replicated
+    return df

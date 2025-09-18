@@ -69,7 +69,7 @@ def get_rhyme_for_txt(txt, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=Fal
     return out
 
 
-def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=False, verbose=DEFAULT_VERBOSE, with_sample=False, **kwargs):
+def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, force=False, verbose=DEFAULT_VERBOSE, with_sample=False, force_recompute=False, **kwargs):
     """Compute rhyme analysis for all poems in a sample DataFrame.
 
     Applies rhyme analysis to each poem in the provided sample, using caching
@@ -109,23 +109,25 @@ def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, fo
 
     data_name = getattr(df_smpl, '_data_name', None)
     new_data_name = data_name
+    df_rhymes = None
     if data_name:
-        new_data_name = 'rhyme_data_for_'+data_name
+        # new_data_name = 'rhyme_data_for_'+data_name
+        new_data_name = data_name + '.rhyme_data.csv'
         path = get_path(new_data_name, as_in_paper=df_smpl._as_in_paper, as_replicated=df_smpl._as_replicated) if data_name else None
-    if path and not force and os.path.exists(path):
-        if verbose:
-            print(f"* Loading rhyme data for {data_name} from {path}")
-        df_rhymes = pd.read_csv(path).fillna("").set_index('id')
+        if path and not force and os.path.exists(path):
+            if verbose:
+                printm(f"* Loading rhyme data for `{data_name}` from `{nice_path(path)}`")
+            df_rhymes = pd.read_csv(path).fillna("").set_index('id')
     
-    else:
+    if df_rhymes is None:
         def get_res(txt):
-            res = get_rhyme_for_txt(txt, max_dist=max_dist, stash=stash, force=force)
+            res = get_rhyme_for_txt(txt, max_dist=max_dist, stash=stash, force=force_recompute)
             return res
 
         df_rhymes = pd.DataFrame((get_res(txt) for txt in tqdm(df.txt,desc='* Getting rhymes for sample')), index=df.index)
         if path:
             if verbose:
-                print(f"* Saving rhyme data for {data_name} to {path}")
+                printm(f"* Saving rhyme data for `{data_name}` to `{nice_path(path)}`")
             df_rhymes.to_csv(path)
     
     odf = postprocess_rhyme_sample(df, df_rhymes, with_sample=with_sample)
@@ -258,7 +260,7 @@ def get_rhyme_data_for(get_func, output_path=None, overwrite=False, with_sample=
             save_sample(df_rhyme_data, output_path, overwrite=True)
 
     if with_sample:
-        print(f"* Joining sample and rhyme data")
+        printm(f"* Joining sample and rhyme data")
         assert df_smpl.index.name == 'id', "Sample dataframe must have an 'id' index"
         assert df_rhyme_data.index.name == 'id', "Rhyme data dataframe must have an 'id' index"
         df_smpl_w_rhyme_data = df_rhyme_data.join(df_smpl, how='left', rsuffix='_from_sample').fillna("")
@@ -362,141 +364,6 @@ def compare_rhyme_data_by_group(
     return compare_data_by_group(df, groupby=groupby,valname=valname,min_group_size=min_group_size,verbose=verbose)
 
 
-def plot_predicted_rhyme_avgs(
-    df, 
-    y='rhyme_pred_perc', 
-    x='period', 
-    gby=None, 
-    color=None, 
-    limits=[0,100], 
-    min_size=10,
-    title=None,
-    xlabel=None,
-    ylabel=None,
-    force=False,
-    verbose=DEFAULT_VERBOSE
-):
-    """
-    Plot predicted rhyme averages with error bars using stderr from statistical analysis.
-    
-    Uses get_avgs_df from stats.py to compute means and standard errors, then creates
-    a plot with error bars representing the stderr whiskers.
-    
-    Parameters
-    ----------
-    df : pd.DataFrame
-        DataFrame containing rhyme prediction data.
-    y : str, default='rhyme_pred_perc'
-        Column name for y-axis values.
-    x : str, default='period'
-        Column name for x-axis values.
-    gby : list, default=['period']
-        List of columns to group by for aggregation.
-    color : str, optional
-        Column name for color grouping.
-    limits : list, default=[0,100]
-        Y-axis limits as [min, max].
-    min_size : int, default=10
-        Minimum group size for inclusion.
-    title : str, optional
-        Plot title (auto-generated if None).
-    xlabel : str, optional
-        X-axis label (auto-generated if None).
-    ylabel : str, optional
-        Y-axis label (auto-generated if None).
-
-    Returns
-    -------
-    plotnine.ggplot
-        Plot object showing rhyme prediction averages with error bars.
-
-    Calls
-    -----
-    - get_avgs_df(df, gby=gby, y=y) [to compute aggregated statistics]
-    """
-    p9.options.figure_size = (10, 6)
-    p9.options.dpi=300
-
-
-    df_smpl = df
-    data_name = getattr(df_smpl, '_data_name', None)
-    path = get_path(data_name, as_in_paper=df_smpl._as_in_paper, as_replicated=df_smpl._as_replicated, is_figure=True) if data_name else None
-    if path and not force and os.path.exists(path):
-        if verbose:
-            print(f"* Loading rhyme data for {data_name} from {path}")
-        return try_display(path)
-    
-    if not gby:
-        if data_name:
-            if 'period_subcorpus' in data_name:
-                gby=['period','subcorpus']
-                color = 'subcorpus'
-            elif 'period' in data_name:
-                gby = ['period']
-        else:
-            gby=['period']
-
-    
-
-    # Get aggregated data with means and stderr using stats function
-    figdf = get_avgs_df(df, gby=gby, y=y)
-
-    # Filter by minimum size
-    figdf = figdf[figdf['count'] >= min_size]
-
-    # Set up default labels
-    if xlabel is None:
-        xlabel = 'Half-century of poet\'s birth' if x == 'period' else x.replace('_', ' ').title()
-    if ylabel is None:
-        ylabel = 'Predicted percentage of poems with rhyme' if y == 'rhyme_pred_perc' else y.replace('_', ' ').title()
-    if title is None:
-        title = f'Rhyme Prediction Averages by {x.replace("_", " ").title()}'
-
-    # Create the base plot
-    plot_aes = p9.aes(x=x, y='mean')
-    if color:
-        plot_aes = p9.aes(x=x, y='mean', color=color, group=color)
-
-    plot = (
-        p9.ggplot(figdf, plot_aes)
-        # + p9.geom_point(p9.aes(size='count'), alpha=0.25)
-        + p9.geom_errorbar(
-            p9.aes(ymin='mean - stderr', ymax='mean + stderr'),
-            width=0.2,
-            size=.5,
-            alpha=1.0
-        )
-    )
-
-    # Add line if color grouping is used
-    plot += p9.geom_line(alpha=1)
-
-    # Add styling and reference line
-    plot += p9.geom_hline(yintercept=50, color='black', linetype='dashed', size=0.5, alpha=0.5)
-
-    plot += p9.theme(
-        panel_background=p9.element_rect(fill='white'),
-        plot_background=p9.element_rect(fill='white'),
-        legend_position='bottom',
-        axis_text_x=p9.element_text(angle=45)
-    )
-    plot += p9.scale_y_continuous(limits=limits)
-    plot += p9.labs(
-        x=xlabel,
-        y=ylabel,
-        title=title,
-        size='Sample Size',
-        color=color.replace('_', ' ').title() if color else None,
-    )
-
-    if path:
-        if verbose:
-            print(f'* Saving figure to {path}')
-            plot.save(path)
-
-    return plot
-
-
 
 def get_rhyming_accuracy_by_rhyme_threshold(df, pred_by=RHYME_PRED_FEATURE):
     df=df[df.rhyme.isin({'y','n'})].copy().reset_index()
@@ -530,3 +397,8 @@ def get_rhyming_preds_table(df_preds, save_latex_to=None):
 
 # df_preds_tbl_in_paper = get_rhyming_preds_table(df_preds_in_paper, save_latex_to=os.path.join(PATH_TEX, 'table_5.rhyme_accuracy.tex'))
 # df_preds_tbl_in_paper
+
+
+
+
+

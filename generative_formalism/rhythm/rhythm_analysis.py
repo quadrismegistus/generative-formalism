@@ -55,24 +55,24 @@ def get_sonnet_rhythm_data(
     )
     if not force and os.path.exists(path):
         if verbose:
-            print(f"* Loading sonnet rhythm data from {nice_path(path)}")
+            printm(f"* Loading sonnet rhythm data from `{nice_path(path)}`")
         odf = pd.read_csv(path).set_index("id")
     else:
         df_smpl = get_chadwyck_corpus_sampled_by(
             sample_by, as_in_paper=as_in_paper, as_replicated=as_replicated
         )
-        df_smpl_rhythm = get_rhythm_for_sample(df_smpl).merge(df_smpl, on="id")
+        df_smpl_rhythm = get_rhythm_for_sample(df_smpl, with_sample=True)
 
         df_shak_rhythm = get_rhythm_for_shakespeare_sonnets()
 
         df_smpl_rhythm["group"] = "Sample"
         df_shak_rhythm["group"] = "Shakespeare"
 
-        df_genai_sonnets = get_genai_rhyme_promptings_as_in_paper()
+        df_genai_sonnets = get_genai_sonnets(as_in_paper=as_in_paper, as_replicated=as_replicated)
         df_genai_sonnets = df_genai_sonnets[
             df_genai_sonnets.prompt.str.contains("sonnet")
         ].query("num_lines==14")
-        df_genai_sonnets_rhythm = get_rhythm_for_sample(df_genai_sonnets, gen=False)
+        df_genai_sonnets_rhythm = get_rhythm_for_sample(df_genai_sonnets, gen=False, with_sample=True)
         df_genai_sonnets_rhythm["group"] = "GenAI"
 
         odf = pd.concat(
@@ -84,7 +84,7 @@ def get_sonnet_rhythm_data(
         )
         odf = odf.query("10<=num_sylls<=12")
         if verbose:
-            print(f"* Writing sonnet rhythm data to {nice_path(path)}")
+            printm(f"* Writing sonnet rhythm data to `{nice_path(path)}`")
         odf.to_csv(path)
 
     def get_group(dob, group):
@@ -103,6 +103,7 @@ def get_sonnet_rhythm_data(
     odf["group"] = [
         get_group(dob, group) for dob, group in zip(odf["author_dob"], odf["group"])
     ]
+    odf._data_name = f"sonnet_rhythm_data_by_{sample_by}"
     odf._sample_by = sample_by
     odf._as_in_paper = as_in_paper
     odf._as_replicated = as_replicated
@@ -181,7 +182,7 @@ def plot_stress_by_syll(
     )
     if not force and os.path.exists(path):
         if verbose:
-            print(f"* Loading stress by syllable plot from {nice_path(path)}")
+            printm(f"* Loading stress by syllable plot from `{nice_path(path)}`")
         return display_img(path)
 
     p9.options.figure_size = (10, 6)
@@ -230,7 +231,7 @@ def plot_stress_by_syll(
     # fig = fig + p9.theme(legend_position='bottom')
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if verbose:
-        print(f"* Saving stress by syllable plot to {nice_path(path)}")
+        printm(f"* Saving stress by syllable plot to `{nice_path(path)}`")
     fig.save(path)
     return fig
 
@@ -268,7 +269,7 @@ def plot_perfect_pentameter(
     )
     if not force and os.path.exists(path):
         if verbose:
-            print(f"* Loading perfect pentameter plot from {nice_path(path)}")
+            printm(f"* Loading perfect pentameter plot from `{nice_path(path)}`")
         return display_img(path)
 
     p9.options.figure_size = (8, 6)
@@ -296,6 +297,10 @@ def plot_perfect_pentameter(
     fig += p9.geom_text(size=9, position=p9.position_nudge(x=0.2))
     fig += p9.coord_flip()
     fig += p9.theme_minimal()
+    fig+= p9.theme(
+        plot_background=p9.element_rect(fill='white', color=None),  # Add white background
+        panel_background=p9.element_rect(fill='white', color=None)  # Add white background to panels
+    )
     fig += p9.labs(
         y=f'% 10-12 syllable lines{" unambiguously" if metric=="is_unambiguously_iambic_pentameter" else " most easily"} parsed as iambic pentameter',
         x="Sonnet source",
@@ -306,6 +311,63 @@ def plot_perfect_pentameter(
     fig += p9.scale_y_continuous(limits=(0, 100))
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if verbose:
-        print(f"* Saving perfect pentameter plot to {nice_path(path)}")
+        printm(f"* Saving perfect pentameter plot to `{nice_path(path)}`")
     fig.save(path)
     return fig
+
+
+def plot_metrical_space(df_rhythm, force=False, verbose=DEFAULT_VERBOSE):
+    """Create a plot showing metrical space of actual vs. generative Shakespearean sonnets.
+
+    Generates a scatter plot with density contours showing the distribution of
+    metrical patterns in actual and generative Shakespearean sonnets. The plot
+    helps visualize the metrical space and differences between historical periods
+    and generative models.
+    """
+    path = get_path(
+        f"fig.metrical_space.{df_rhythm._sample_by}.png",
+        as_in_paper=df_rhythm._as_in_paper,
+        as_replicated=df_rhythm._as_replicated,
+        is_figure=True,
+    )
+    if path and not force and os.path.exists(path):
+        if verbose:
+            printm(f"* Loading metrical space plot from `{nice_path(path)}`")
+        return try_display(path)
+
+    p9.options.figure_size = (9, 8)
+    p9.options.dpi = 300
+    figdf = df_rhythm.groupby(['group','id']).mean(numeric_only=True).reset_index()
+    figdf['perc_ww_in_meter'] = figdf['num_pos_ww']/figdf['num_pos']
+
+    figdf = figdf[~figdf.group.str.startswith('C')]
+    xcol = 'perc_ww_in_meter'
+    ycol = 'forth_syllable_stressed'
+    figdf[xcol]*=100
+    figdf[ycol]*=100
+
+    title='Upper left-hand is iambic meter'
+    title+='\nThe further up, the more rising the meter'
+    title+='\nThe further right, the more ternary the meter'
+    fig = (
+        p9.ggplot(figdf, p9.aes(x=xcol, y=ycol, color='group', label='group'))
+        + p9.geom_point(size=1.5, alpha=.5)
+        + p9.geom_density_2d(size=1, alpha=.666)
+        + p9.geom_label(size=9, data=figdf.groupby(['group']).median(numeric_only=True).reset_index())
+        # + p9.facet_wrap('agent',ncol=2)
+        # + p9.facet_wrap('agent',nrow=1)
+        + p9.theme_minimal()
+        + p9.theme(legend_position='none')
+        + p9.scale_color_brewer(type='qual', palette='Set2')
+        + p9.scale_x_continuous(limits=(0,33))
+        + p9.scale_y_continuous(limits=(0,100))
+        + p9.labs(y='% Lines rising', x='% Feet ternary', caption=title, title='Metrical space of actual vs. generative Shakespearean sonnets')
+        + p9.geom_vline(xintercept=15, linetype='dashed', alpha=0.5)
+        + p9.geom_hline(yintercept=50, linetype='dashed', alpha=0.5)
+    )
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    if verbose:
+        printm(f"* Saving metrical space plot to `{nice_path(path)}`")
+    fig.save(path)
+    return fig
+

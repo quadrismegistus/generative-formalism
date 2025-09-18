@@ -154,11 +154,11 @@ async def generate_text_async(model: str, prompt: str, temperature: float = 0.7,
         str: The complete generated text response
     """
     output_parts: list[str] = []
-    # print(f'* model: {model}')
-    # print(f'* prompt: {prompt}')
-    # print(f'* temperature: {temperature}')
-    # print(f'* system_prompt: {system_prompt}')
-    # print(f'* verbose: {verbose}')
+    # printm(f'*model: {model}')
+    # printm(f'*prompt: {prompt}')
+    # printm(f'*temperature: {temperature}')
+    # printm(f'*system_prompt: {system_prompt}')
+    # printm(f'*verbose: {verbose}')
     async for token in stream_llm(model=model, prompt=prompt, temperature=temperature, system_prompt=system_prompt, verbose=verbose):
         output_parts.append(token)
     return ''.join(output_parts)
@@ -211,16 +211,19 @@ def generate_text(model: str, prompt: str, temperature: float = DEFAULT_TEMPERAT
         str: The complete generated text response (from cache or new generation)
     """
     if verbose:
-        print(f'* Generating text')
-        print(f'  * model: {model}')
+        system_prompt_preview = system_prompt.replace("\n", " ").strip()[:100] if system_prompt else ''
         prompt_preview = prompt.replace("\n", " ").strip()[:100]
-        print(f'  * prompt: {prompt_preview}')
-        print(f'  * temperature: {temperature}')
-        if system_prompt:
-            system_preview = system_prompt.replace("\n", " ").strip()[:100]
-            print(f'  * system_prompt: {system_preview}')
-        print(f'  * force: {force}')
-        print(f'  * stash: {stash}')
+        ppref = f'''
+*Generating text
+  * model: {model}
+  * prompt: {prompt_preview}
+  * temperature: {temperature}
+  * system_prompt: {system_prompt_preview}
+  * force: {force}
+  * stash: {stash}
+
+'''
+        printm(ppref)
     key = {
         'model': model,
         'prompt': prompt,
@@ -229,7 +232,7 @@ def generate_text(model: str, prompt: str, temperature: float = DEFAULT_TEMPERAT
     }
     if not force and key in stash:
         if verbose:
-            print(f'  * from_cache: True')
+            printm(f'  * from_cache: True')
         response = stash[key]
         if verbose:
             for word in response.split(' '):
@@ -237,7 +240,7 @@ def generate_text(model: str, prompt: str, temperature: float = DEFAULT_TEMPERAT
                 time.sleep(random.uniform(0.01, 0.03))
     else:
         if verbose:
-            print(f'  * from_cache: False\n')
+            printm(f'  * from_cache: False\n')
         # print(f'\n* Generating new text:')
         response = run_async(
             generate_text_async,

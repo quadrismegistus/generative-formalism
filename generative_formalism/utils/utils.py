@@ -81,13 +81,13 @@ def save_sample(df, path_sample, overwrite=False):
     os.makedirs(os.path.dirname(path_sample), exist_ok=True)
     if overwrite or not os.path.exists(path_sample):
         df.to_csv(path_sample)
-        print(f'* Saved sample to {path_sample}')
+        printm(f'* Saved sample to `{nice_path(path_sample)}`')
     else:
         path_sample_now = f"{os.path.splitext(path_sample.replace('.gz', ''))[0]}_{datetime.now().strftime('%Y-%m-%d-%H-%M')}.csv"
         if path_sample.endswith('.csv.gz'):
             path_sample_now += '.gz'
         df.to_csv(path_sample_now)
-        print(f'* Saved sample to {path_sample_now}')
+        printm(f'* Saved sample to `{nice_path(path_sample_now)}`')
 
 def try_display(obj):
     """Attempt to display an object using IPython display, with graceful fallback.
@@ -109,6 +109,7 @@ def try_display(obj):
     -----
     - display(obj) [if IPython available]
     """
+    if obj is None: return
     try:
         from IPython.display import display, Image
         if type(obj)==str and obj.endswith('.png'):
@@ -261,7 +262,7 @@ def unzip_file(filepath: str, extract_to: str, remove_zip=True, use_parent_dir=T
     if remove_zip:
         try:
             os.remove(filepath)
-            print(f'* Removed zip file: {filepath}')
+            printm(f'*Removed zip file: `{nice_path(filepath)}`')
         except:
             pass
         
@@ -367,9 +368,12 @@ def describe_qual(s,sort_index=False, count=True, name=None):
         s = s.sort_index()
     x=repr(s)
     x='\n'.join(x.split('\n')[1:-1])
-    print('* Breakdown for', name)
-    print(x)
-    print()
+    out = f'''Breakdown for {name}:
+```md
+{x}
+```
+'''
+    printm(out)
 
 def describe_qual_grouped(s, groupby, sort_index=False, count=True, name=None):
     if not name:
@@ -378,11 +382,13 @@ def describe_qual_grouped(s, groupby, sort_index=False, count=True, name=None):
     odf.set_index(groupby, inplace=True)
     if sort_index:
         odf.sort_index(inplace=True)
-    print('* Breakdown for', name)
-    print(odf)
-    print()
-
-
+    x=repr(odf)
+    out = f'''Breakdown for {name}:
+```md
+{x}
+```
+'''
+    printm(out)
 
 
 
@@ -430,7 +436,7 @@ def render_latex_to_png(tex_body, out_png_path, verbose=DEFAULT_VERBOSE):
                 )
             except Exception as e:
                 if verbose:
-                    print(f'* LaTeX compile failed: {e}')
+                    printm(f'* LaTeX compile failed: {e}')
                 return False
             # Convert PDF -> PNG (300 DPI)
             try:
@@ -455,7 +461,7 @@ def render_latex_to_png(tex_body, out_png_path, verbose=DEFAULT_VERBOSE):
                 return True
             except Exception as e:
                 if verbose:
-                    print(f'* PDF->PNG conversion failed: {e}')
+                    printm(f'*PDF->PNG conversion failed: {e}')
                 return False
 
 
@@ -571,7 +577,7 @@ def df_to_latex_table(
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         with open(save_path, 'w') as f:
             if verbose:
-                print(f'* writing LaTeX to {save_path}')
+                printm(f'* Writing LaTeX to `{nice_path(save_path)}`')
             f.write(latex_str)
 
         if return_display:
@@ -581,12 +587,13 @@ def df_to_latex_table(
                 try:
                     ok = render_latex_to_png(latex_str, png_path)
                 except Exception as e:
+                    printm(f'* Warning: Could not render PNG: {e}')
                     pass
                 if ok:
                     return Image(png_path)
                 else:
                     if verbose:
-                        print(f"* warning: could not render PNG")
+                        printm(f"* warning: could not render PNG")
             except (NameError, ImportError):
                 pass
         return save_path
@@ -598,7 +605,7 @@ def get_nice_prompt_type(prompt_type):
     return NICE_PROMPT_TYPE.get(prompt_type, prompt_type)
 
 def nice_path(path):
-    return path.replace(PATH_REPO, '{PATH_REPO}')
+    return path.replace(PATH_REPO, '{REPO}').replace('/','/')
 
 
 def timeout(seconds):
@@ -626,7 +633,7 @@ def timeout(seconds):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             def timeout_handler(signum, frame):
-                print(f"* Function {func.__name__} timed out after {seconds} seconds")
+                printm(f"* Function `{func.__name__}` timed out after {seconds} seconds")
             
             try:
                 # Set the timeout handler
@@ -682,7 +689,8 @@ def documentation(func, docstring=True, signature=False, source=False, short_doc
         if docstring:
             if short_docstring:
                 dstr_hdr, dstr_bdy = get_short_docstr(func)
-                markdown_content+=f': {dstr_hdr}<br/><small><i>{dstr_bdy}</i></small>'
+                # markdown_content+=f': {dstr_hdr}<br/><small><i>{dstr_bdy}</i></small>'
+                markdown_content+=f': {dstr_hdr}'
        
             else:
                 markdown_content += f"""
@@ -746,12 +754,3 @@ def get_short_docstr(func):
     lines = [x.strip() for x in lines if x.strip()]
     if not lines: return '', ''
     return lines[0], ' '.join(lines[1:])
-
-def get_path_for_df(df, prefix='', suffix='', **kwargs):
-    data_name = getattr(df, '_data_name', None)
-    as_in_paper=getattr(df,'_as_in_paper', None)
-    as_replicated=getattr(df,'_as_in_paper', None)
-
-    if data_name and (as_in_paper or as_replicated):
-        new_data_name = prefix + data_name + suffix
-        return get_path(new_data_name, as_in_paper=as_in_paper, as_replicated=as_replicated, **kwargs)
