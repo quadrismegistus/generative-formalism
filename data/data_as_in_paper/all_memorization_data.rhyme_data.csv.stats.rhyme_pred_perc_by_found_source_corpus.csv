@@ -1,0 +1,7 @@
+comparison,n1,n2,p_value,effect_size,effect_size_str,mean1,mean2,significant,found_source_corpus
+open|antoniak-et-al vs open|chadwyck,1636,4635,0.0,0.2831496946199813,small,77.20048899755501,64.03451995685005,True,open
+closed|antoniak-et-al vs open|chadwyck,1636,4635,0.0,0.2831496946199813,small,77.20048899755501,64.03451995685005,True,open
+open|antoniak-et-al vs closed|chadwyck,1636,11298,0.0,0.2400112739834983,small,77.20048899755501,65.98513011152416,True,closed
+closed|antoniak-et-al vs closed|chadwyck,1636,11298,0.0,0.2400112739834983,small,77.20048899755501,65.98513011152416,True,closed
+closed|chadwyck vs open|chadwyck,11298,4635,0.0203,0.04101511734075867,,65.98513011152416,64.03451995685005,True,open
+open|antoniak-et-al vs closed|antoniak-et-al,1636,1636,1.0,0.0,,77.20048899755501,77.20048899755501,False,closed

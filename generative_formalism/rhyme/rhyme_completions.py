@@ -42,9 +42,27 @@ def get_genai_rhyme_completions(
         filter_recognized=filter_recognized,
         line_gen=line_gen,
     )
+    # return df_postprocessed
+
+    # # fix duplicate id_human cols
+    # cols = list(df_postprocessed.columns)
+    # print(cols)
+    # cols2=[]
+    # seen_idhuman=False
+    # for col in cols:
+    #     if col=='id_human':
+    #         if seen_idhuman:
+    #             cols2.append('id_gen')
+    #         else:
+    #             cols2.append('id_human')
+    #         seen_idhuman=True
+    #     else:
+    #         cols2.append(col)
+    # print(cols2)
+    # df_postprocessed.columns = cols2
 
     df_meta = get_chadwyck_corpus_metadata()
-    df_postprocessed = df_postprocessed.reset_index().merge(df_meta, left_on='id_human', right_on='id', suffixes=['', '_from_meta'], how='left')
+    df_postprocessed = df_postprocessed.merge(df_meta, left_on='id_human', right_on='id', suffixes=['', '_from_meta'], how='left')
 
     df_postprocessed._data_name = f'genai_rhyme_completions_{"real" if not line_gen else "gen"}'
     df_postprocessed._sample_by = ''  # N/A for this data
@@ -286,7 +304,7 @@ def postprocess_genai_rhyme_completions(
             odf = filter_recognized_completions(odf, threshold=threshold, verbose=verbose)
 
         if by_line:
-            return odf.rename(columns={'id':'id_human'})
+            return odf#.rename(columns={'id':'id_human'})
 
         poems_df = to_poem_txt_format(
             odf,
@@ -466,13 +484,14 @@ def to_poem_txt_format(df, keep_first_n_lines=False, verbose=DEFAULT_VERBOSE, fi
         return row_out
 
     df = pd.concat([pd.DataFrame([get_row(gdf) for g, gdf in df.groupby("id")])])
-    return df.set_index(
-        [
-            x
-            for x in GENAI_RHYME_COMPLETIONS_INDEX + ["keep_first_n_lines"]
-            if x in df.columns
-        ]
-    )
+    return df
+    # .set_index(
+    #     [
+    #         x
+    #         for x in GENAI_RHYME_COMPLETIONS_INDEX + ["keep_first_n_lines"]
+    #         if x in df.columns
+    #     ]
+    # )
 
 
 def parse_stash_rows_to_poems(df, keep_first_n_lines=False, verbose=DEFAULT_VERBOSE):

@@ -73,7 +73,7 @@ def get_sonnet_rhythm_data(
             df_genai_sonnets.prompt.str.contains("sonnet")
         ].query("num_lines==14")
         df_genai_sonnets_rhythm = get_rhythm_for_sample(df_genai_sonnets, gen=False, with_sample=True)
-        df_genai_sonnets_rhythm["group"] = "GenAI"
+        df_genai_sonnets_rhythm["group"] = "LLM"
 
         odf = pd.concat(
             [
@@ -88,7 +88,7 @@ def get_sonnet_rhythm_data(
         odf.to_csv(path)
 
     def get_group(dob, group):
-        if group in {"Shakespeare", "GenAI"}:
+        if group in {"Shakespeare", "LLM"}:
             return group
 
         if collapse_C17_19:
@@ -189,6 +189,7 @@ def plot_stress_by_syll(
     df_syll = get_rhythm_data_by_syll(df_rhythm)
 
     figdf = get_avgs_df(df_syll, ["group", "syll_num"], "stress")
+    figdf['mean'] = pd.to_numeric(figdf['mean'], errors='coerce')
 
     fig = p9.ggplot(
         figdf,
@@ -201,7 +202,8 @@ def plot_stress_by_syll(
     )
     fig += p9.geom_line(p9.aes(group="group"), size=0.5, alpha=0.5)
     fig += p9.scale_y_continuous(limits=(0, 100))
-    fig += p9.theme_classic()
+    fig += p9.theme_minimal()
+    fig += p9.theme(legend_position='none', plot_background=p9.element_rect(fill='white', color=None), panel_background=p9.element_rect(fill='white', color=None))
     fig += p9.geom_errorbar(
         p9.aes(ymin="mean-stderr", ymax="mean+stderr"),
         data=figdf,
@@ -302,9 +304,9 @@ def plot_perfect_pentameter(
         panel_background=p9.element_rect(fill='white', color=None)  # Add white background to panels
     )
     fig += p9.labs(
-        y=f'% 10-12 syllable lines{" unambiguously" if metric=="is_unambiguously_iambic_pentameter" else " most easily"} parsed as iambic pentameter',
+        y=f'% 10- to 12-syllable lines{" unambiguously" if metric=="is_unambigously_iambic_pentameter" else " most easily"} parsed as iambic pentameter',
         x="Sonnet source",
-        title="""Inhumanly strict metrical observance of iambic pentameter\nin LLM sonnets""",
+        title="""Inhumanly strict metrical observance of iambic pentameter in LLM sonnets""",
     )
     fig += p9.geom_hline(yintercept=50, linetype="dashed", alpha=0.5)
 
@@ -357,11 +359,11 @@ def plot_metrical_space(df_rhythm, force=False, verbose=DEFAULT_VERBOSE):
         # + p9.facet_wrap('agent',ncol=2)
         # + p9.facet_wrap('agent',nrow=1)
         + p9.theme_minimal()
-        + p9.theme(legend_position='none')
+        + p9.theme(legend_position='none', plot_background=p9.element_rect(fill='white', color=None), panel_background=p9.element_rect(fill='white', color=None))
         + p9.scale_color_brewer(type='qual', palette='Set2')
         + p9.scale_x_continuous(limits=(0,33))
         + p9.scale_y_continuous(limits=(0,100))
-        + p9.labs(y='% Lines rising', x='% Feet ternary', caption=title, title='Metrical space of actual vs. generative Shakespearean sonnets')
+        + p9.labs(y='% Lines rising', x='% Feet ternary', title='Metrical space of actual vs. generative Shakespearean sonnets')
         + p9.geom_vline(xintercept=15, linetype='dashed', alpha=0.5)
         + p9.geom_hline(yintercept=50, linetype='dashed', alpha=0.5)
     )

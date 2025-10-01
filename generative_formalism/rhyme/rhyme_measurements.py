@@ -125,7 +125,7 @@ def get_rhyme_for_sample(df_smpl, max_dist=RHYME_MAX_DIST, stash=STASH_RHYME, fo
             return res
 
         df_rhymes = pd.DataFrame((get_res(txt) for txt in tqdm(df.txt,desc='* Getting rhymes for sample')), index=df.index)
-        if path:
+        if data_name and path:
             if verbose:
                 printm(f"* Saving rhyme data for `{data_name}` to `{nice_path(path)}`")
             df_rhymes.to_csv(path)
