@@ -62,7 +62,8 @@ def get_genai_rhyme_completions(
     # df_postprocessed.columns = cols2
 
     df_meta = get_chadwyck_corpus_metadata()
-    df_postprocessed = df_postprocessed.merge(df_meta, left_on='id_human', right_on='id', suffixes=['', '_from_meta'], how='left')
+    left_on = 'id_human' if 'id_human' in df_postprocessed.reset_index().columns else 'id'
+    df_postprocessed = df_postprocessed.merge(df_meta, left_on=left_on, right_on='id', suffixes=['', '_from_meta'], how='left')
 
     df_postprocessed._data_name = f'genai_rhyme_completions_{"real" if not line_gen else "gen"}'
     df_postprocessed._sample_by = ''  # N/A for this data
